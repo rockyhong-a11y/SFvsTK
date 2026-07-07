@@ -11,6 +11,7 @@ import {
   KeyboardController, PadController, CompositeController, VirtualController,
   P1_KEYS, P2_KEYS, tickInputClock, pollGamepads, padMenuEdges,
 } from './input.js';
+import { preloadSkinnedModels, isSkinnedModelReady } from './skinnedRig.js';
 
 const app = document.getElementById('app');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -41,12 +42,16 @@ const fx = new FX(scene);
 UI.init();
 
 // ---------------- app state ----------------
-const CHAR_IDS = ['chunli', 'nina', 'cammy', 'asuka', 'zangief', 'rmika'];
+const CHAR_IDS = ['chunli', 'nina', 'cammy', 'asuka', 'zangief', 'rmika', 'sakura'];
 let mode = 'title'; // title | charselect | fight | result
 let game = null;
 let ai = null;
 let paused = false;
 let pauseIndex = 0;
+
+// Sakura uses a real rigged model (fetched async) instead of the procedural box rig.
+const skinnedModelsReady = preloadSkinnedModels(['sakura'])
+  .catch((e) => console.error('skinned model preload failed', e));
 
 let menuIndex = 0;
 const menuOpts = [...document.querySelectorAll('.menuOpt')];
@@ -134,7 +139,19 @@ function fillPauseTable() {
   pauseRestartOpt.textContent = game.practiceMode ? '위치 · 체력 초기화' : '라운드 재시작';
 }
 
-function startFight() {
+function neededCharIds() {
+  return [CHAR_IDS[sel.p1], CHAR_IDS[sel.p2]].filter((id) => CHARACTERS[id].rig.type === 'skinned');
+}
+
+async function ensureModelsReady() {
+  const pending = neededCharIds().filter((id) => !isSkinnedModelReady(id));
+  if (!pending.length) return;
+  csTitle.textContent = '로딩 중...';
+  await skinnedModelsReady;
+}
+
+async function startFight() {
+  await ensureModelsReady();
   if (game) game.dispose();
   charselectEl.classList.remove('on');
   const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
@@ -157,7 +174,8 @@ function startFight() {
   mode = 'fight';
 }
 
-function startPractice() {
+async function startPractice() {
+  await ensureModelsReady();
   if (game) game.dispose();
   charselectEl.classList.remove('on');
   const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);

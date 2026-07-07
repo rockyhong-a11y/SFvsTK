@@ -994,6 +994,131 @@ const RMIKA = {
 };
 attachCommandNormals(RMIKA);
 
+// ============================================================
+// SAKURA — shoto rushdown, rendered on a real rigged model (see skinnedRig.js)
+// instead of the box rig. rig.type:'skinned' tells Fighter to load it that way.
+// ============================================================
+const SAKURA = {
+  id: 'sakura',
+  displayName: 'SAKURA',
+  nameKo: '사쿠라',
+  health: 980,
+  walkF: 2.6, walkB: 1.95,
+  jumpVy: 7.3,
+  rig: { type: 'skinned', modelId: 'sakura' },
+  moves: {
+    punch: {
+      name: '잽', startup: 0.08, active: 0.06, recovery: 0.17,
+      damage: 27, level: 'high', hitstun: 0.28, blockstun: 0.18, kb: 1.6,
+      limbs: ['fistL'], radius: RAD, cancelable: true, sound: 'whoosh',
+      anim: strike(0.08, 0.06, 0.17,
+        { ...ST, tw: -0.5, sL: 0.7, eL: 2.1 },
+        { y: -0.06, tl: 0.14, tw: 0.35, sL: 1.55, eL: 0.1, sR: 0.4, eR: 1.8, hL: 0.35, kL: -0.5, hR: -0.2, kR: -0.35 }),
+    },
+    kick: {
+      name: '킥', startup: 0.15, active: 0.07, recovery: 0.28,
+      damage: 60, level: 'mid', hitstun: 0.38, blockstun: 0.24, kb: 3.4,
+      limbs: ['footR'], radius: 0.32, sound: 'whoosh',
+      anim: strike(0.15, 0.07, 0.28,
+        { ...ST, tl: 0.2, tw: -0.6, hR: -0.5, kR: -1.2 },
+        { y: -0.05, tl: -0.18, tw: 0.5, sL: 0.7, eL: 1.5, sR: -0.6, eR: 0.6, hL: 0.2, kL: -0.4, hR: 1.75, kR: -0.1 }),
+    },
+    cpunch: {
+      name: '앉아 잽', startup: 0.08, active: 0.05, recovery: 0.16, crouching: true,
+      damage: 22, level: 'sm', hitstun: 0.24, blockstun: 0.16, kb: 1.2,
+      limbs: ['fistL'], radius: 0.26, cancelable: true, sound: 'whoosh',
+      anim: strike(0.08, 0.05, 0.16, CR, { ...CR, tw: 0.2, sL: 1.35, eL: 0.1 }, CR),
+    },
+    ckick: {
+      name: '앉아 킥', startup: 0.14, active: 0.07, recovery: 0.3, crouching: true,
+      damage: 40, level: 'low', hitstun: 0.34, blockstun: 0.22, kb: 2.0,
+      limbs: ['footR'], radius: 0.3, sound: 'whoosh',
+      anim: strike(0.14, 0.07, 0.3, CR, { ...CR, tl: 0.4, hR: 0.55, kR: -0.05 }, CR),
+    },
+    jpunch: {
+      name: '점프 펀치', startup: 0.09, active: 0.3, recovery: 0.1, air: true,
+      damage: 48, level: 'mid', hitstun: 0.34, blockstun: 0.22, kb: 2.0,
+      limbs: ['fistR'], radius: 0.3, sound: 'whoosh',
+      anim: [[0, AIR], [0.25, { ...AIR, tl: 0.35, sR: 1.1, eR: 0.15 }], [1, { ...AIR, tl: 0.35, sR: 1.1, eR: 0.15 }]],
+    },
+    jkick: {
+      name: '점프 킥', startup: 0.11, active: 0.3, recovery: 0.1, air: true,
+      damage: 60, level: 'mid', hitstun: 0.4, blockstun: 0.26, kb: 2.8,
+      limbs: ['footR'], radius: 0.34, sound: 'whoosh',
+      anim: [[0, AIR], [0.3, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1, hL: 1.2, kL: -2.0 }], [1, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1 }]],
+    },
+    grab: throwMove({
+      name: '헤드 스크류', startup: 0.13, active: 0.06, recovery: 0.48,
+      catchT: 0.13, liftT: 0.3, damage: 112, range: 1.0, kb: 5.5, kbUp: 4.2,
+    }),
+    skillN: {
+      name: '하도켄', startup: 0.24, active: 0.02, recovery: 0.38, isSkill: true,
+      damage: 0, level: 'sm', sound: 'fireball',
+      proj: { kind: 'fireball', speed: 7.4, damage: 55, level: 'sm', hitstun: 0.4, blockstun: 0.28, kb: 2.8, chip: 0.15, color: 0xff8a3d, y: 1.1, radius: 0.3 },
+      anim: [
+        [0, ST],
+        [0.28, { y: -0.12, tl: 0.1, tw: -0.7, sL: -0.6, eL: 0.9, sR: -0.5, eR: 0.8 }],
+        [0.42, { y: -0.1, x: 0.12, tl: 0.22, tw: 0.35, sL: 1.35, eL: 0.25, sR: 1.3, eR: 0.3 }],
+        [0.75, { y: -0.1, x: 0.12, tl: 0.22, tw: 0.35, sL: 1.35, eL: 0.25, sR: 1.3, eR: 0.3 }],
+        [1, ST],
+      ],
+    },
+    skillF: {
+      name: '쇼오켄', startup: 0.08, active: 0.28, recovery: 0.48, isSkill: true,
+      damage: 92, level: 'mid', hitstun: 0.5, blockstun: 0.3, kb: 1.4, kbUp: 8.2,
+      limbs: ['fistR'], radius: 0.36, invuln: [0, 0.22], selfVy: 7.2, fwdSpeed: 1.2,
+      chip: 0.15, sound: 'whoosh', afterimage: true, landingLag: true,
+      anim: [
+        [0, { ...ST, y: -0.15, tl: 0.25 }],
+        [0.14, { y: 0.1, tl: -0.3, tw: 0.3, sR: 2.2, eR: 0.15, sL: 0.4, eL: 1.5, hR: 0.6, kR: -0.5, hL: 0.9, kL: -1.5 }],
+        [0.55, { y: 0.1, tl: -0.35, tw: 0.3, sR: 2.3, eR: 0.1, sL: 0.4, eL: 1.5, hR: 0.6, kR: -0.5, hL: 0.9, kL: -1.5 }],
+        [1, ST],
+      ],
+    },
+    skillB: {
+      name: '슌푸카큐쿠', startup: 0.15, active: 0.4, recovery: 0.36, isSkill: true,
+      damage: 26, level: 'mid', hitstun: 0.24, blockstun: 0.17, kb: 1.0,
+      hits: 3, hitInterval: 0.15,
+      lastHit: { kb: 5.5, kbUp: 3.2, knockdown: true, hitstun: 0.6 },
+      limbs: ['footR', 'footL'], radius: 0.36, fwdSpeed: 3.0, fwdWindow: [0.15, 0.5],
+      chip: 0.1, sound: 'whoosh', afterimage: true,
+      anim: [
+        [0, ST],
+        [0.14, { ...ST, tl: -0.1, hR: 1.6, kR: -0.1, ry: 0.4 }],
+        [0.32, { ...ST, tl: -0.1, hL: 1.6, kL: -0.1, hR: -0.2, kR: -0.5, ry: 2.5 }],
+        [0.5, { ...ST, tl: -0.15, hR: 1.7, kR: -0.05, ry: 5.0 }],
+        [1, { ...ST, ry: 6.28 }],
+      ],
+    },
+    skillD: {
+      name: '낮은 스윕', startup: 0.18, active: 0.09, recovery: 0.42, isSkill: true, crouching: true,
+      damage: 55, level: 'low', hitstun: 0.6, blockstun: 0.26, kb: 3.0, knockdown: true,
+      limbs: ['footR'], radius: 0.34, chip: 0.1, sound: 'whoosh',
+      anim: [
+        [0, CR],
+        [0.2, { ...CR, tw: -0.8, hR: -0.3, kR: -1.4 }],
+        [0.28, { ...CR, tl: 0.45, tw: 0.4, hR: 0.6, kR: -0.05, ry: 1.2 }],
+        [0.42, { ...CR, tl: 0.45, tw: 0.4, hR: 0.6, kR: -0.05, ry: 3.5 }],
+        [0.8, { ...CR, ry: 6.28 }],
+        [1, ST],
+      ],
+    },
+    superN: superArt('하루이치방', ['fistR', 'footR'], [
+      [0, ST],
+      [0.18, { ...ST, y: -0.15, tl: 0.2, tw: -0.6, sL: -0.5, eL: 1.2 }],
+      [0.3, { y: -0.08, tl: 0.2, tw: 0.35, sL: 1.55, eL: 0.1, sR: 0.3, eR: 1.7, hL: 0.4, kL: -0.6 }],
+      [0.42, { y: -0.05, tl: -0.1, tw: 0.4, sL: 0.6, eL: 1.5, hR: 1.7, kR: -0.08 }],
+      [0.54, { y: -0.08, tl: 0.25, tw: -0.2, sR: 1.6, eR: 0.05, sL: 0.4, eL: 1.6 }],
+      [0.64, { y: -0.05, tl: -0.15, tw: 0.4, hR: 1.85, kR: 0 }],
+      [0.76, { y: 0.1, tl: -0.3, tw: 0.3, sR: 2.3, eR: 0.1, sL: 0.4, eL: 1.5, hR: 0.6, kR: -0.5 }],
+      [1, ST],
+    ], { damage: 44 }),
+    ...wakeupMoves(),
+  },
+};
+attachCommandNormals(SAKURA);
+
 export const CHARACTERS = {
   chunli: CHUNLI, nina: NINA, cammy: CAMMY, asuka: ASUKA, zangief: ZANGIEF, rmika: RMIKA,
+  sakura: SAKURA,
 };
