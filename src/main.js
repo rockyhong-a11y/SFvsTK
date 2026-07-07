@@ -11,7 +11,6 @@ import {
   KeyboardController, PadController, CompositeController, VirtualController,
   P1_KEYS, P2_KEYS, tickInputClock, pollGamepads, padMenuEdges,
 } from './input.js';
-import { preloadSkinnedModels, isSkinnedModelReady } from './skinnedRig.js';
 
 const app = document.getElementById('app');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -48,11 +47,6 @@ let game = null;
 let ai = null;
 let paused = false;
 let pauseIndex = 0;
-
-// All skinned models (fetched async on startup; fighters preload variants as needed before fight)
-const skinnedModelsReady = preloadSkinnedModels(['sakura', 'sports_girl', 'tina'])
-  .catch((e) => console.error('skinned model preload failed', e));
-
 let menuIndex = 0;
 const menuOpts = [...document.querySelectorAll('.menuOpt')];
 const csCards = [...document.querySelectorAll('.csCard')];
@@ -76,127 +70,46 @@ function setPauseSel(i) {
 
 function showCharSelect(vsMode) {
   sel.mode = vsMode;
-  sel.phase = 'p1-char';
+  sel.phase = 'p1';
   sel.p1 = 0;
   sel.p2 = 1;
   mode = 'charselect';
   UI.showTitle(false);
   charselectEl.classList.add('on');
-  updateCharSelectTitle();
+  csTitle.textContent = 'P1 — 캐릭터 선택';
   renderCsCursor();
-}
-
-function updateCharSelectTitle() {
-  if (sel.phase === 'p1-char') csTitle.textContent = 'P1 — 캐릭터 선택';
-  else if (sel.phase === 'p1-model') csTitle.textContent = 'P1 — 모델 선택';
-  else if (sel.phase === 'p2-char') csTitle.textContent = sel.mode === 'practice' ? '더미 — 캐릭터 선택' : 'P2 — 캐릭터 선택';
-  else if (sel.phase === 'p2-model') csTitle.textContent = sel.mode === 'practice' ? '더미 — 모델 선택' : 'P2 — 모델 선택';
 }
 
 function renderCsCursor() {
   csCards.forEach((el, i) => {
     el.classList.toggle('selP1', i === sel.p1);
-    el.classList.toggle('selP2', mode === 'charselect' && (sel.phase === 'p2-char' || sel.phase === 'p2-model') && i === sel.p2);
-  });
-  updateCharSelectTitle();
-  updateVariantDisplay();
-}
-
-function updateVariantDisplay() {
-  ['p1', 'p2'].forEach(player => {
-    const charIdx = sel[player];
-    const charId = CHAR_IDS[charIdx];
-    const char = CHARACTERS[charId];
-    const variantIdx = sel[`${player}Variant`];
-    const variant = char.variants && char.variants[variantIdx];
-    const card = csCards[charIdx];
-
-    if (!card) return; // card might not exist for all indices
-
-    let hint = card.querySelector('div[style*="color: #7fd0ff"]');
-
-    // Create hint element if it doesn't exist and character has variants
-    if (!hint && char.variants && char.variants.length > 1) {
-      hint = document.createElement('div');
-      hint.style.fontSize = '10px';
-      hint.style.color = '#7fd0ff';
-      hint.style.marginTop = '4px';
-      card.appendChild(hint);
-    }
-
-    if (!hint) return;
-
-    // Only show variant hint during model selection phases
-    const isModelSelectionPhase = sel.phase.endsWith('-model');
-    const isThisPlayerPhase = (player === 'p1' && sel.phase.startsWith('p1-')) || (player === 'p2' && sel.phase.startsWith('p2-'));
-
-    if (variant && isModelSelectionPhase && isThisPlayerPhase) {
-      hint.textContent = `[${variant.name}] W/S 또는 ↑↓`;
-      hint.style.display = '';
-    } else {
-      hint.style.display = 'none';
-    }
+    el.classList.toggle('selP2', mode === 'charselect' && sel.phase !== 'p1' && i === sel.p2);
   });
 }
 
 function csMove(who, delta) {
-  // Only allow during character selection phases
-  if (!sel.phase.endsWith('-char')) return;
   Sound.beep();
   const n = CHAR_IDS.length;
   if (who === 'p1') sel.p1 = (sel.p1 + delta + n) % n;
   else sel.p2 = (sel.p2 + delta + n) % n;
-  sel[`${who}Variant`] = 0; // reset variant when switching characters
-  renderCsCursor();
-}
-
-function csVariantMove(who, delta) {
-  // Only allow during model selection phases
-  if (!sel.phase.endsWith('-model')) return;
-  Sound.beep();
-  const charId = CHAR_IDS[sel[who]];
-  const char = CHARACTERS[charId];
-  const variantKey = `${who}Variant`;
-  const variants = char.variants || [];
-  if (!variants.length) return;
-
-  let idx = (sel[variantKey] + delta + variants.length) % variants.length;
-
-  // Skip non-selectable variants
-  let attempts = 0;
-  while (attempts < variants.length && variants[idx].selectable === false) {
-    idx = (idx + delta + variants.length) % variants.length;
-    attempts++;
-  }
-
-  sel[variantKey] = idx;
   renderCsCursor();
 }
 
 function csConfirm() {
   Sound.announce();
-  if (sel.phase === 'p1-char') {
-    sel.phase = 'p1-model';
-    updateCharSelectTitle();
-    renderCsCursor();
-  } else if (sel.phase === 'p1-model') {
+  if (sel.phase === 'p1') {
     if (sel.mode === 'cpu') {
       sel.phase = 'cpu';
       csTitle.textContent = 'CPU 상대 결정 중...';
       sel.p2 = Math.floor(Math.random() * CHAR_IDS.length);
-      sel.p2Variant = 0;
       renderCsCursor();
       setTimeout(() => { if (mode === 'charselect') startFight(); }, 550);
     } else {
-      sel.phase = 'p2-char';
-      updateCharSelectTitle();
+      sel.phase = 'p2';
+      csTitle.textContent = sel.mode === 'practice' ? '더미 — 캐릭터 선택' : 'P2 — 캐릭터 선택';
       renderCsCursor();
     }
-  } else if (sel.phase === 'p2-char') {
-    sel.phase = 'p2-model';
-    updateCharSelectTitle();
-    renderCsCursor();
-  } else if (sel.phase === 'p2-model') {
+  } else if (sel.phase === 'p2') {
     if (sel.mode === 'practice') startPractice(); else startFight();
   }
 }
@@ -220,49 +133,13 @@ function fillPauseTable() {
   pauseRestartOpt.textContent = game.practiceMode ? '위치 · 체력 초기화' : '라운드 재시작';
 }
 
-function neededModelIds() {
-  const needed = [];
-  [sel.p1, sel.p2].forEach((charIdx, playerIdx) => {
-    const charId = CHAR_IDS[charIdx];
-    const char = CHARACTERS[charId];
-    const variantIdx = playerIdx === 0 ? sel.p1Variant : sel.p2Variant;
-    const variant = char.variants && char.variants[variantIdx];
-    if (variant && variant.rig && variant.rig.type === 'skinned') {
-      needed.push(variant.rig.modelId);
-    }
-  });
-  return [...new Set(needed)]; // deduplicate
-}
-
-async function ensureModelsReady() {
-  const pending = neededModelIds().filter((id) => !isSkinnedModelReady(id));
-  if (!pending.length) return;
-  csTitle.textContent = '로딩 중...';
-  await preloadSkinnedModels(pending);
-}
-
-function getCharWithVariant(charIdx, isPlayer2) {
-  const charId = CHAR_IDS[charIdx];
-  const charDef = CHARACTERS[charId];
-  const variantIdx = isPlayer2 ? sel.p2Variant : sel.p1Variant;
-  const variant = charDef.variants && charDef.variants[variantIdx];
-  if (!variant) return charDef; // fallback if no variants
-
-  return {
-    ...charDef,
-    rig: variant.rig,
-    variantName: variant.name,
-  };
-}
-
 async function startFight() {
-  await ensureModelsReady();
   if (game) game.dispose();
   charselectEl.classList.remove('on');
   const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
   const p2 = new CompositeController(new KeyboardController(P2_KEYS), new PadController(1));
-  const charA = getCharWithVariant(sel.p1, false);
-  const charB = getCharWithVariant(sel.p2, true);
+  const charA = CHARACTERS[CHAR_IDS[sel.p1]];
+  const charB = CHARACTERS[CHAR_IDS[sel.p2]];
   game = new Game(scene, fx, charA, charB, p1, p2);
   game.camera = camera;
   window.__game = game; // dev/test hook
@@ -280,13 +157,12 @@ async function startFight() {
 }
 
 async function startPractice() {
-  await ensureModelsReady();
   if (game) game.dispose();
   charselectEl.classList.remove('on');
   const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
   const dummyCtrl = new VirtualController();
-  const charA = getCharWithVariant(sel.p1, false);
-  const charB = getCharWithVariant(sel.p2, true);
+  const charA = CHARACTERS[CHAR_IDS[sel.p1]];
+  const charB = CHARACTERS[CHAR_IDS[sel.p2]];
   game = new Game(scene, fx, charA, charB, p1, dummyCtrl, { practice: true });
   game.camera = camera;
   window.__game = game;
@@ -386,13 +262,10 @@ window.addEventListener('keydown', (e) => {
     else if (e.code === 'Digit3') showCharSelect('practice');
     else if (e.code === 'Enter' || e.code === 'Space') showCharSelect(menuOpts[menuIndex].dataset.mode);
   } else if (mode === 'charselect') {
-    const isP1Turn = sel.phase.startsWith('p1-');
-    const soloTurn = sel.mode !== '2p'; // cpu/practice: P1 controls both picks
+    const isP1Turn = sel.phase === 'p1';
     if (['KeyA', 'ArrowLeft'].includes(e.code)) csMove(isP1Turn ? 'p1' : 'p2', -1);
     else if (['KeyD', 'ArrowRight'].includes(e.code)) csMove(isP1Turn ? 'p1' : 'p2', 1);
-    else if (['KeyW', 'ArrowUp'].includes(e.code)) csVariantMove(isP1Turn ? 'p1' : 'p2', -1);
-    else if (['KeyS', 'ArrowDown'].includes(e.code)) csVariantMove(isP1Turn ? 'p1' : 'p2', 1);
-    else if ((isP1Turn || sel.phase.startsWith('p2-')) && ['Enter', 'KeyJ', 'Space'].includes(e.code)) csConfirm();
+    else if (['Enter', 'KeyJ', 'Space'].includes(e.code)) csConfirm();
     else if (e.code === 'Escape') backToTitle();
   } else if (mode === 'fight') {
     if (paused) {
