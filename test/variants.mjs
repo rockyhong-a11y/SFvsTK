@@ -18,27 +18,27 @@ await page.waitForTimeout(800);
 await page.keyboard.press('Digit1');
 await page.waitForTimeout(300);
 
-// Select Sakura (move right 6 times from Chun-Li)
-for (let i = 0; i < 6; i++) await page.keyboard.press('KeyD');
+// Select Sakura (move down 6 times from Chun-Li using S key)
+for (let i = 0; i < 6; i++) await page.keyboard.press('KeyS');
 await page.waitForTimeout(200);
 
 // Check initial variant is shown (should be "Box" or first variant)
 const variantLabel1 = await page.textContent('body');
 console.log('After selecting Sakura, page contains variant info:', variantLabel1.includes('Box') || variantLabel1.includes('Juri') ? 'YES' : 'NO');
 
-// Cycle through variants (press ArrowUp 2 times to cycle)
+// Cycle through variants (press ArrowRight/D 2 times to cycle)
 const beforeVariant = await page.evaluate(() => document.querySelectorAll('[style*="color: #7fd0ff"]')[0]?.textContent || 'unknown');
 console.log('Before variant cycling:', beforeVariant);
 
-await page.keyboard.press('ArrowUp');
+await page.keyboard.press('KeyD');
 await page.waitForTimeout(200);
 const afterVariant1 = await page.evaluate(() => document.querySelectorAll('[style*="color: #7fd0ff"]')[0]?.textContent || 'unknown');
-console.log('After pressing ArrowUp once:', afterVariant1, '(changed:', beforeVariant !== afterVariant1, ')');
+console.log('After pressing D (right) once:', afterVariant1, '(changed:', beforeVariant !== afterVariant1, ')');
 
-await page.keyboard.press('ArrowUp');
+await page.keyboard.press('KeyD');
 await page.waitForTimeout(200);
 const afterVariant2 = await page.evaluate(() => document.querySelectorAll('[style*="color: #7fd0ff"]')[0]?.textContent || 'unknown');
-console.log('After pressing ArrowUp twice:', afterVariant2, '(changed:', afterVariant1 !== afterVariant2, ')');
+console.log('After pressing D (right) twice:', afterVariant2, '(changed:', afterVariant1 !== afterVariant2, ')');
 
 // Press Enter to confirm character (P1 selection)
 console.log('Pressing Enter to confirm P1...');

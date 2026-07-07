@@ -344,10 +344,10 @@ window.addEventListener('keydown', (e) => {
   } else if (mode === 'charselect') {
     const p1Turn = sel.phase === 'p1';
     const soloTurn = sel.mode !== '2p'; // cpu/practice: P1 controls both picks
-    if (['KeyA', 'ArrowLeft'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', -1);
-    else if (['KeyD', 'ArrowRight'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', 1);
-    else if (['KeyW', 'ArrowUp'].includes(e.code)) csVariantMove(p1Turn ? 'p1' : 'p2', -1);
-    else if (['KeyS', 'ArrowDown'].includes(e.code)) csVariantMove(p1Turn ? 'p1' : 'p2', 1);
+    if (['KeyW', 'ArrowUp'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', -1);
+    else if (['KeyS', 'ArrowDown'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', 1);
+    else if (['KeyA', 'ArrowLeft'].includes(e.code)) csVariantMove(p1Turn ? 'p1' : 'p2', -1);
+    else if (['KeyD', 'ArrowRight'].includes(e.code)) csVariantMove(p1Turn ? 'p1' : 'p2', 1);
     else if (p1Turn && ['Enter', 'KeyJ', 'Space'].includes(e.code)) csConfirm();
     else if (!p1Turn && sel.phase === 'p2' &&
       (['Enter', 'Numpad1', 'KeyN'].includes(e.code) || (soloTurn && ['KeyJ', 'Space'].includes(e.code)))) csConfirm();

@@ -37,7 +37,12 @@ python3 -m http.server 8000   # 저장소 루트에서
 
 ### 모델 선택 기능 (사쿠라 및 기타 캐릭터)
 
-**캐릭터 선택 화면에서 <kbd>↑</kbd>/<kbd>↓</kbd> (또는 <kbd>W</kbd>/<kbd>S</kbd>)로 캐릭터별 렌더링 방식을 선택할 수 있습니다:**
+**캐릭터 선택 화면:**
+- **<kbd>↑</kbd> / <kbd>↓</kbd> (또는 <kbd>W</kbd> / <kbd>S</kbd>)** → 캐릭터 선택
+- **<kbd>←</kbd> / <kbd>→</kbd> (또는 <kbd>A</kbd> / <kbd>D</kbd>)** → 모델 변형 선택
+- **<kbd>Enter</kbd> / <kbd>Space</kbd>** → 확정
+
+각 캐릭터의 렌더링 방식을 선택할 수 있습니다:
 
 - **사쿠라**: 기본값은 "Juri" 모델(CC BY 4.0 무료 3D 모델, 완전히 리깅됨)
   - **Juri** — 원본 USFIV 팬아트 모델
