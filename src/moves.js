@@ -1131,6 +1131,30 @@ function makeVariants(charDef) {
 
 // Characters with multiple rendering variants
 const withVariants = {
+  chunli: {
+    ...CHUNLI,
+    variants: [
+      { name: 'Box', rig: CHUNLI.rig, selectable: true },
+      { name: 'Variant', rig: { type: 'skinned', modelId: 'chunli_variant' }, selectable: true },
+    ],
+    defaultVariant: 0,
+  },
+  nina: {
+    ...NINA,
+    variants: [
+      { name: 'Box', rig: NINA.rig, selectable: true },
+      { name: 'Variant', rig: { type: 'skinned', modelId: 'nina_variant' }, selectable: true },
+    ],
+    defaultVariant: 0,
+  },
+  cammy: {
+    ...CAMMY,
+    variants: [
+      { name: 'Box', rig: CAMMY.rig, selectable: true },
+      { name: 'Variant', rig: { type: 'skinned', modelId: 'cammy_variant' }, selectable: true },
+    ],
+    defaultVariant: 0,
+  },
   sakura: {
     ...SAKURA,
     variants: [
@@ -1144,9 +1168,9 @@ const withVariants = {
 };
 
 export const CHARACTERS = {
-  chunli: makeVariants(CHUNLI),
-  nina: makeVariants(NINA),
-  cammy: makeVariants(CAMMY),
+  chunli: withVariants.chunli,
+  nina: withVariants.nina,
+  cammy: withVariants.cammy,
   asuka: makeVariants(ASUKA),
   zangief: makeVariants(ZANGIEF),
   rmika: makeVariants(RMIKA),

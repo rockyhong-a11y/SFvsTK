@@ -82,6 +82,9 @@ const glbModels = [
   { path: 'assets/models/sakura_juri.glb', urlPattern: "'./assets/models/sakura_juri.glb'" },
   { path: 'assets/models/sports_girl.glb', urlPattern: "'./assets/models/sports_girl.glb'" },
   { path: 'assets/models/tina.glb', urlPattern: "'./assets/models/tina.glb'" },
+  { path: 'assets/models/chunli_variant.glb', urlPattern: "'./assets/models/chunli_variant.glb'" },
+  { path: 'assets/models/nina_variant.glb', urlPattern: "'./assets/models/nina_variant.glb'" },
+  { path: 'assets/models/cammy_variant.glb', urlPattern: "'./assets/models/cammy_variant.glb'" },
 ];
 
 let patchedGameCode = gameCode;

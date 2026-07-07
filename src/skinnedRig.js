@@ -55,6 +55,9 @@ const MODEL_DEFS = {
   sakura: { url: './assets/models/sakura_juri.glb', bones: JURI_BONES, scale: 1.05 },
   sports_girl: { url: './assets/models/sports_girl.glb', bones: CC_RIG_BONES, scale: 0.95 },
   tina: { url: './assets/models/tina.glb', bones: MIXAMO_BONES, scale: 1.0 },
+  chunli_variant: { url: './assets/models/chunli_variant.glb', bones: CC_RIG_BONES, scale: 1.0 },
+  nina_variant: { url: './assets/models/nina_variant.glb', bones: CC_RIG_BONES, scale: 1.0 },
+  cammy_variant: { url: './assets/models/cammy_variant.glb', bones: CC_RIG_BONES, scale: 1.0 },
 };
 
 export function preloadSkinnedModels(ids) {
