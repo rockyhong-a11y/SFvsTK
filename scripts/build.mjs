@@ -77,13 +77,27 @@ if (threeCore.includes('</script') || threeWrap.includes('</script')) {
   throw new Error('three.js source contains </script — cannot inline');
 }
 
-const sakuraGlbB64 = readFileSync(resolve(root, 'assets/models/sakura_juri.glb')).toString('base64');
-const sakuraGlbDataUri = `data:model/gltf-binary;base64,${sakuraGlbB64}`;
-const patchedGameCode = gameCode.replace(
-  "'./assets/models/sakura_juri.glb'",
-  () => JSON.stringify(sakuraGlbDataUri),
-);
-if (patchedGameCode === gameCode) throw new Error('sakura GLB path not found to inline — check skinnedRig.js');
+// Embed all GLB models as base64 data URIs
+const glbModels = [
+  { path: 'assets/models/sakura_juri.glb', urlPattern: "'./assets/models/sakura_juri.glb'" },
+  { path: 'assets/models/sports_girl.glb', urlPattern: "'./assets/models/sports_girl.glb'" },
+  { path: 'assets/models/tina.glb', urlPattern: "'./assets/models/tina.glb'" },
+];
+
+let patchedGameCode = gameCode;
+for (const model of glbModels) {
+  const b64 = readFileSync(resolve(root, model.path)).toString('base64');
+  const dataUri = `data:model/gltf-binary;base64,${b64}`;
+  const newCode = patchedGameCode.replace(
+    new RegExp(model.urlPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    () => JSON.stringify(dataUri),
+  );
+  if (newCode === patchedGameCode) {
+    console.warn(`warning: GLB path ${model.path} not found to inline — check skinnedRig.js`);
+  } else {
+    patchedGameCode = newCode;
+  }
+}
 
 let html = read('index.html');
 

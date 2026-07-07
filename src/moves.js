@@ -1118,7 +1118,36 @@ const SAKURA = {
 };
 attachCommandNormals(SAKURA);
 
+// Helper: wrap character rig into variants array for model selection support
+function makeVariants(charDef) {
+  const baseRig = charDef.rig || { type: 'box' };
+  if (charDef.variants) return charDef; // already wrapped
+  return {
+    ...charDef,
+    variants: [{ name: 'Box', rig: baseRig }],
+    defaultVariant: 0,
+  };
+}
+
+// Characters with multiple rendering variants
+const withVariants = {
+  sakura: {
+    ...SAKURA,
+    variants: [
+      { name: 'Juri', rig: SAKURA.rig },
+      { name: 'Athletic', rig: { type: 'skinned', modelId: 'sports_girl' } },
+      { name: 'Tina', rig: { type: 'skinned', modelId: 'tina' } },
+    ],
+    defaultVariant: 0,
+  },
+};
+
 export const CHARACTERS = {
-  chunli: CHUNLI, nina: NINA, cammy: CAMMY, asuka: ASUKA, zangief: ZANGIEF, rmika: RMIKA,
-  sakura: SAKURA,
+  chunli: makeVariants(CHUNLI),
+  nina: makeVariants(NINA),
+  cammy: makeVariants(CAMMY),
+  asuka: makeVariants(ASUKA),
+  zangief: makeVariants(ZANGIEF),
+  rmika: makeVariants(RMIKA),
+  sakura: withVariants.sakura,
 };

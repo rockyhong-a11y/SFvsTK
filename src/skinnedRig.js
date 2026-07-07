@@ -18,7 +18,7 @@ const AXIS_Y = new THREE.Vector3(0, 1, 0);
 
 const templates = new Map(); // id -> { scene, boneNames }
 
-// Bone names for the Juri rig (see CREDITS.md). Only the bones our pose system drives.
+// Bone names for each rigged character model (see CREDITS.md). Only the bones our pose system drives.
 const JURI_BONES = {
   torsoLean: 'Stomach_09', torsoTwist: 'Chest_010', head: 'Head_012',
   shoulderR: 'RArm1_097', elbowR: 'RArm2_098', shoulderL: 'LArm1_0133', elbowL: 'LArm2_0134',
@@ -27,8 +27,34 @@ const JURI_BONES = {
   handR: 'RHN_0122', handL: 'LHN_0153', footR: 'RFN_0189', footL: 'LFN_0209',
 };
 
+const CC_RIG_BONES = {
+  // Character Creator rig (Hot Sports Girl)
+  torsoLean: 'CC_Base_Spine02_035', torsoTwist: 'CC_Base_Spine01_034', head: 'CC_Base_Head_038',
+  shoulderR: 'CC_Base_R_Upperarm_078', elbowR: 'CC_Base_R_Forearm_079',
+  shoulderL: 'CC_Base_L_Upperarm_050', elbowL: 'CC_Base_L_Forearm_051',
+  hipR: 'CC_Base_R_Thigh_018', kneeR: 'CC_Base_R_Calf_019',
+  hipL: 'CC_Base_L_Thigh_04', kneeL: 'CC_Base_L_Calf_05',
+  pelvis: 'CC_Base_Pelvis_03',
+  handR: 'CC_Base_R_Hand_083', handL: 'CC_Base_L_Hand_055',
+  footR: 'CC_Base_R_Foot_021', footL: 'CC_Base_L_Foot_06',
+};
+
+const MIXAMO_BONES = {
+  // Mixamo rig (Tina 3)
+  torsoLean: 'mixamorig:Spine2_04', torsoTwist: 'mixamorig:Spine1_03', head: 'mixamorig:Head_06',
+  shoulderR: 'mixamorig:RightArm_033', elbowR: 'mixamorig:RightForeArm_034',
+  shoulderL: 'mixamorig:LeftArm_09', elbowL: 'mixamorig:LeftForeArm_010',
+  hipR: 'mixamorig:RightUpLeg_060', kneeR: 'mixamorig:RightLeg_061',
+  hipL: 'mixamorig:LeftUpLeg_055', kneeL: 'mixamorig:LeftLeg_056',
+  pelvis: 'mixamorig:Hips_01',
+  handR: 'mixamorig:RightHand_035', handL: 'mixamorig:LeftHand_011',
+  footR: 'mixamorig:RightFoot_062', footL: 'mixamorig:LeftFoot_057',
+};
+
 const MODEL_DEFS = {
   sakura: { url: './assets/models/sakura_juri.glb', bones: JURI_BONES, scale: 1.05 },
+  sports_girl: { url: './assets/models/sports_girl.glb', bones: CC_RIG_BONES, scale: 0.95 },
+  tina: { url: './assets/models/tina.glb', bones: MIXAMO_BONES, scale: 1.0 },
 };
 
 export function preloadSkinnedModels(ids) {

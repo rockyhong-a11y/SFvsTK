@@ -7,7 +7,7 @@
     "start": "python3 -m http.server 8000",
     "serve:test": "python3 -m http.server 8321",
     "build": "node scripts/build.mjs",
-    "test": "node test/smoke.mjs && node test/playtest.mjs && node test/wallsplat.mjs && node test/features.mjs && node test/v2features.mjs && node test/cmdnormals.mjs && node test/touch.mjs && node test/desktopnotouch.mjs && node test/sakura.mjs && node test/singlefile.mjs && node test/singlefile2.mjs && node test/singlefile3.mjs && node test/singlefile4.mjs"
+    "test": "node test/smoke.mjs && node test/playtest.mjs && node test/wallsplat.mjs && node test/features.mjs && node test/v2features.mjs && node test/cmdnormals.mjs && node test/touch.mjs && node test/desktopnotouch.mjs && node test/sakura.mjs && node test/variants.mjs && node test/singlefile.mjs && node test/singlefile2.mjs && node test/singlefile3.mjs && node test/singlefile4.mjs"
   },
   "devDependencies": {
     "playwright": "^1.61.1",

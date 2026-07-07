@@ -49,8 +49,8 @@ let ai = null;
 let paused = false;
 let pauseIndex = 0;
 
-// Sakura uses a real rigged model (fetched async) instead of the procedural box rig.
-const skinnedModelsReady = preloadSkinnedModels(['sakura'])
+// All skinned models (fetched async on startup; fighters preload variants as needed before fight)
+const skinnedModelsReady = preloadSkinnedModels(['sakura', 'sports_girl', 'tina'])
   .catch((e) => console.error('skinned model preload failed', e));
 
 let menuIndex = 0;
@@ -61,7 +61,7 @@ const charselectEl = document.getElementById('charselect');
 const pauseOpts = [...document.querySelectorAll('.pauseOpt')];
 const pauseRestartOpt = document.getElementById('pauseRestartOpt');
 
-const sel = { mode: 'cpu', phase: 'p1', p1: 0, p2: 1 };
+const sel = { mode: 'cpu', phase: 'p1', p1: 0, p2: 1, p1Variant: 0, p2Variant: 0 };
 
 function setMenuSel(i) {
   menuIndex = (i + menuOpts.length) % menuOpts.length;
@@ -91,6 +91,32 @@ function renderCsCursor() {
     el.classList.toggle('selP1', i === sel.p1);
     el.classList.toggle('selP2', mode === 'charselect' && sel.phase !== 'p1' && i === sel.p2);
   });
+  updateVariantDisplay();
+}
+
+function updateVariantDisplay() {
+  ['p1', 'p2'].forEach(player => {
+    const charIdx = sel[player];
+    const charId = CHAR_IDS[charIdx];
+    const char = CHARACTERS[charId];
+    const variantIdx = sel[`${player}Variant`];
+    const variant = char.variants && char.variants[variantIdx];
+    if (variant) {
+      const card = csCards[charIdx];
+      let hint = card.getAttribute('data-variant-hint') || '';
+      if (!hint) {
+        hint = document.createElement('div');
+        hint.style.fontSize = '10px';
+        hint.style.color = '#7fd0ff';
+        hint.style.marginTop = '4px';
+        card.appendChild(hint);
+        card.setAttribute('data-variant-hint', 'set');
+      } else {
+        hint = card.querySelector('div[style*="color: #7fd0ff"]');
+      }
+      if (hint) hint.textContent = `[${variant.name}] ↑↓`;
+    }
+  });
 }
 
 function csMove(who, delta) {
@@ -98,6 +124,17 @@ function csMove(who, delta) {
   const n = CHAR_IDS.length;
   if (who === 'p1') sel.p1 = (sel.p1 + delta + n) % n;
   else sel.p2 = (sel.p2 + delta + n) % n;
+  sel[`${who}Variant`] = 0; // reset variant when switching characters
+  renderCsCursor();
+}
+
+function csVariantMove(who, delta) {
+  Sound.beep();
+  const charId = CHAR_IDS[sel[who]];
+  const char = CHARACTERS[charId];
+  const variantKey = `${who}Variant`;
+  const n = (char.variants && char.variants.length) || 1;
+  sel[variantKey] = (sel[variantKey] + delta + n) % n;
   renderCsCursor();
 }
 
@@ -139,15 +176,39 @@ function fillPauseTable() {
   pauseRestartOpt.textContent = game.practiceMode ? '위치 · 체력 초기화' : '라운드 재시작';
 }
 
-function neededCharIds() {
-  return [CHAR_IDS[sel.p1], CHAR_IDS[sel.p2]].filter((id) => CHARACTERS[id].rig.type === 'skinned');
+function neededModelIds() {
+  const needed = [];
+  [sel.p1, sel.p2].forEach((charIdx, playerIdx) => {
+    const charId = CHAR_IDS[charIdx];
+    const char = CHARACTERS[charId];
+    const variantIdx = playerIdx === 0 ? sel.p1Variant : sel.p2Variant;
+    const variant = char.variants && char.variants[variantIdx];
+    if (variant && variant.rig && variant.rig.type === 'skinned') {
+      needed.push(variant.rig.modelId);
+    }
+  });
+  return [...new Set(needed)]; // deduplicate
 }
 
 async function ensureModelsReady() {
-  const pending = neededCharIds().filter((id) => !isSkinnedModelReady(id));
+  const pending = neededModelIds().filter((id) => !isSkinnedModelReady(id));
   if (!pending.length) return;
   csTitle.textContent = '로딩 중...';
-  await skinnedModelsReady;
+  await preloadSkinnedModels(pending);
+}
+
+function getCharWithVariant(charIdx, isPlayer2) {
+  const charId = CHAR_IDS[charIdx];
+  const charDef = CHARACTERS[charId];
+  const variantIdx = isPlayer2 ? sel.p2Variant : sel.p1Variant;
+  const variant = charDef.variants && charDef.variants[variantIdx];
+  if (!variant) return charDef; // fallback if no variants
+
+  return {
+    ...charDef,
+    rig: variant.rig,
+    variantName: variant.name,
+  };
 }
 
 async function startFight() {
@@ -156,8 +217,8 @@ async function startFight() {
   charselectEl.classList.remove('on');
   const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
   const p2 = new CompositeController(new KeyboardController(P2_KEYS), new PadController(1));
-  const charA = CHARACTERS[CHAR_IDS[sel.p1]];
-  const charB = CHARACTERS[CHAR_IDS[sel.p2]];
+  const charA = getCharWithVariant(sel.p1, false);
+  const charB = getCharWithVariant(sel.p2, true);
   game = new Game(scene, fx, charA, charB, p1, p2);
   game.camera = camera;
   window.__game = game; // dev/test hook
@@ -180,8 +241,8 @@ async function startPractice() {
   charselectEl.classList.remove('on');
   const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
   const dummyCtrl = new VirtualController();
-  const charA = CHARACTERS[CHAR_IDS[sel.p1]];
-  const charB = CHARACTERS[CHAR_IDS[sel.p2]];
+  const charA = getCharWithVariant(sel.p1, false);
+  const charB = getCharWithVariant(sel.p2, true);
   game = new Game(scene, fx, charA, charB, p1, dummyCtrl, { practice: true });
   game.camera = camera;
   window.__game = game;
@@ -285,6 +346,8 @@ window.addEventListener('keydown', (e) => {
     const soloTurn = sel.mode !== '2p'; // cpu/practice: P1 controls both picks
     if (['KeyA', 'ArrowLeft'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', -1);
     else if (['KeyD', 'ArrowRight'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', 1);
+    else if (['KeyW', 'ArrowUp'].includes(e.code)) csVariantMove(p1Turn ? 'p1' : 'p2', -1);
+    else if (['KeyS', 'ArrowDown'].includes(e.code)) csVariantMove(p1Turn ? 'p1' : 'p2', 1);
     else if (p1Turn && ['Enter', 'KeyJ', 'Space'].includes(e.code)) csConfirm();
     else if (!p1Turn && sel.phase === 'p2' &&
       (['Enter', 'Numpad1', 'KeyN'].includes(e.code) || (soloTurn && ['KeyJ', 'Space'].includes(e.code)))) csConfirm();
