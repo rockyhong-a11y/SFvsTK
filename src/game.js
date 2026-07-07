@@ -54,6 +54,7 @@ export class Game {
     a.inputLocked = b.inputLocked = true;
     this.timer = ROUND_TIME;
     this.phase = 'roundIntro';
+    this.scrapFinish = false;
     this.phaseT = 0;
     this.combo = [{ hits: 0, dmg: 0 }, { hits: 0, dmg: 0 }];
     UI.resetBars();
@@ -365,6 +366,16 @@ export class Game {
     victim.applyHit(atk, dir, opts);
     if (attacker) attacker.moveConnected = true;
 
+    // stun meter — clean hits build dizzy; maxing it staggers the HAR wide open
+    victim.dizzy = (victim.dizzy || 0) + dmg * 0.7;
+    if (victim.dizzy >= 85 && victim.grounded && victim.state === 'hitstun') {
+      victim.dizzy = 0;
+      victim.stunDur = Math.max(victim.stunDur, 1.5); // dazed — long punishable stagger
+      UI.subAnnounce('STUNNED!');
+      Sound.announce();
+      this.fx.ring(contact.x, contact.y + 0.3);
+    }
+
     // super gauge: dealing and taking damage both build meter
     owner?.addMeter?.(dmg * 0.055);
     victim.addMeter(dmg * 0.045);
@@ -387,7 +398,10 @@ export class Game {
     }
     this.spawnDamageNumber(contact, dmg, counter);
 
-    if (victim.health <= 0 && this.phase === 'fight') this.ko(victim);
+    if (victim.health <= 0 && this.phase === 'fight') {
+      this.scrapFinish = !!atk.isSuper; // super finish → scrap bonus (destruction homage)
+      this.ko(victim);
+    }
   }
 
   spawnDamageNumber(contact, dmg, counter) {
@@ -601,6 +615,7 @@ export class Game {
   }
 
   ko(victim) {
+    if (this.scrapFinish) UI.subAnnounce('SCRAP!'); // 파괴 연출 보너스
     this.phase = 'koSlow';
     this.phaseT = 0;
     UI.announce('K.O.', 1.8, true);

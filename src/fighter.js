@@ -49,6 +49,7 @@ export class Fighter {
     this.moveBlocked = false;
     this.walkPhase = 0;
     this.stunDur = 0;
+    this.dizzy = 0; // stun meter — builds on hits taken, decays over time
     this.lastHitLevel = 'mid';
     this.juggleHits = 0;
     this.wallSplatUsed = false;
@@ -235,6 +236,7 @@ export class Fighter {
 
   // ---------- per-frame update ----------
   update(dt, game) {
+    this.dizzy = Math.max(0, (this.dizzy || 0) - dt * 5.5); // stun meter cooldown
     this.stateT += dt;
     this.flash = Math.max(0, this.flash - dt * 6);
     const c = this.ctrl;

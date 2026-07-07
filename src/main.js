@@ -376,7 +376,8 @@ function onStoryMatchEnd(champ) {
   }
   // credits: base + ladder bonus + perfect bonus
   const me = game.fighters[0];
-  const reward = 300 + story.stage * 80 + (me.health >= me.maxHealth ? 200 : 0);
+  const scrap = game.scrapFinish ? 150 : 0; // super-finish destruction bonus
+  const reward = 300 + story.stage * 80 + (me.health >= me.maxHealth ? 200 : 0) + scrap;
   career.credits += reward;
   saveCareer();
   const wasBoss = story.ladder[story.stage].boss;

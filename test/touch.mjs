@@ -52,7 +52,7 @@ await page.evaluate(() => {
   el.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, cancelable: true }));
 });
 await page.waitForTimeout(40);
-const punchMove = await page.evaluate(() => __game.fighters[0].move?.name || '');
+const punchMove = await page.evaluate(() => __game.fighters[0].lastMoveName || '');
 await page.evaluate(() => {
   const el = document.querySelector('#touchButtons .tPunch');
   el.dispatchEvent(new TouchEvent('touchend', { bubbles: true, cancelable: true }));

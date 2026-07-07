@@ -30,7 +30,7 @@ await page.evaluate(() => {
   document.querySelector('#touchButtons .tPunch').dispatchEvent(new TouchEvent('touchstart', { bubbles: true, cancelable: true }));
 });
 await page.waitForTimeout(80);
-const punchName = await page.evaluate(() => __game.fighters[0].move?.name || '');
+const punchName = await page.evaluate(() => __game.fighters[0].lastMoveName || '');
 console.log('touch punch move:', JSON.stringify(punchName));
 
 // directional command normal via keyboard on the standalone build
@@ -38,7 +38,7 @@ await page.keyboard.down('KeyD');
 await page.waitForTimeout(20);
 await page.keyboard.press('KeyK');
 await page.waitForTimeout(30);
-const fwdKick = await page.evaluate(() => __game.fighters[0].move?.name || '');
+const fwdKick = await page.evaluate(() => __game.fighters[0].lastMoveName || '');
 await page.keyboard.up('KeyD');
 console.log('forward+kick move:', JSON.stringify(fwdKick));
 
