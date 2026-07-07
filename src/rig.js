@@ -56,6 +56,7 @@ export function buildRig(cfg) {
   const root = new THREE.Group();
   const spin = new THREE.Group(); // for ry spins
   root.add(spin);
+  if (cfg.scale) spin.scale.setScalar(cfg.scale);
 
   const pelvis = new THREE.Group();
   pelvis.position.y = 0.95;

@@ -1,5 +1,9 @@
 import { buildRig, sampleClip, lerpPose } from './rig.js';
 import { ST, CR, AIR, HIT_H, HIT_M, BLK_S, BLK_C, LAUNCHED, KD, WALLSPLAT, CRUMPLE_A, WIN } from './moves.js';
+import { Sound } from './audio.js';
+
+const DASH_TAP_WINDOW = 0.28; // max seconds between taps to count as a double-tap
+const DASH_COOLDOWN = 0.45;
 
 export const GRAV = 21;
 
@@ -45,6 +49,13 @@ export class Fighter {
     this.koFalling = false;
     this.inputLocked = false;
     this.landLagT = 0;
+    this.throwClip = null;
+    this.throwT = 0;
+    this.throwDur = 0;
+    this.dashTapT = { left: 999, right: 999 };
+    this.prevDirHeld = { left: false, right: false };
+    this.dashCooldown = 0;
+    this.dashForward = true;
   }
 
   get grounded() { return this.pos.y <= 0.001 && this.vy <= 0; }
@@ -79,6 +90,7 @@ export class Fighter {
   isInvulnerable() {
     if (this.state === 'knockdown' || this.state === 'getup' || this.state === 'roll' ||
         this.state === 'thrown' || this.state === 'ko' || this.state === 'win' || this.state === 'intro') return true;
+    if (this.state === 'dash' && this.dashInvuln) return true;
     if (this.state === 'attack' && this.move?.invuln) {
       const [a, b] = this.move.invuln;
       if (this.moveT >= a && this.moveT <= b) return true;
@@ -162,11 +174,46 @@ export class Fighter {
 
   moveDuration(move) { return move.startup + move.active + move.recovery; }
 
+  // forward/backward dash: two quick taps of the same direction key
+  startDash(isForward, game) {
+    this.state = 'dash';
+    this.stateT = 0;
+    this.dashForward = isForward;
+    this.dashCooldown = DASH_COOLDOWN;
+    this.dashInvuln = false;
+    game.fx.dust(this.pos.x, 0.05, 6);
+    Sound.whoosh();
+  }
+
+  checkDashInput(dt, game) {
+    const c = this.ctrl;
+    this.dashTapT.left += dt;
+    this.dashTapT.right += dt;
+    this.dashCooldown = Math.max(0, this.dashCooldown - dt);
+
+    const heldL = c.held('left'), heldR = c.held('right');
+    const edgeL = heldL && !this.prevDirHeld.left;
+    const edgeR = heldR && !this.prevDirHeld.right;
+    this.prevDirHeld.left = heldL;
+    this.prevDirHeld.right = heldR;
+    if (!edgeL && !edgeR) return;
+
+    const dir = edgeL ? 'left' : 'right';
+    const canDash = this.canAct() && this.grounded && this.dashCooldown <= 0 && !this.inputLocked;
+    if (canDash && this.dashTapT[dir] < DASH_TAP_WINDOW) {
+      const worldDir = dir === 'left' ? -1 : 1;
+      this.startDash(worldDir === this.facing, game);
+    }
+    this.dashTapT[dir] = 0;
+  }
+
   // ---------- per-frame update ----------
   update(dt, game) {
     this.stateT += dt;
     this.flash = Math.max(0, this.flash - dt * 6);
     const c = this.ctrl;
+
+    this.checkDashInput(dt, game);
 
     switch (this.state) {
       case 'intro':
@@ -202,6 +249,27 @@ export class Fighter {
         this.vx = 0;
         if (!c.held('down')) { this.state = 'idle'; this.stateT = 0; break; }
         if (!this.inputLocked) this.tryStartMoves();
+        break;
+      }
+
+      case 'dash': {
+        const dur = this.dashForward ? 0.26 : 0.24;
+        this.dashInvuln = !this.dashForward && this.stateT < 0.12;
+        const speed = this.dashForward ? this.char.walkF * 2.5 : this.char.walkB * 2.3;
+        const u = Math.min(1, this.stateT / dur);
+        const speedMul = u < 0.55 ? 1 : Math.max(0, 1 - (u - 0.55) / 0.45);
+        this.vx = this.facing * (this.dashForward ? 1 : -1) * speed * speedMul;
+        // late-dash cancel: let an attack button interrupt the tail of the dash
+        if (!this.inputLocked && u > 0.65 &&
+            (c.pressed('punch') || c.pressed('kick') || c.pressed('skill') || c.pressed('grab'))) {
+          this.state = 'idle'; this.stateT = 0;
+          this.tryStartMoves();
+          break;
+        }
+        if (this.stateT >= dur) {
+          this.state = c.held('down') ? 'crouch' : 'idle';
+          this.stateT = 0;
+        }
         break;
       }
 
@@ -448,7 +516,8 @@ export class Fighter {
 
   applyHit(atk, dir, opts = {}) {
     const dmg = opts.damage ?? atk.damage;
-    this.health = Math.max(0, this.health - dmg);
+    const floor = this.gameRef?.practiceMode ? 1 : 0;
+    this.health = Math.max(floor, this.health - dmg);
     this.lastHitLevel = atk.level;
     this.flash = 1;
     const dead = this.health <= 0;
@@ -508,6 +577,18 @@ export class Fighter {
         break;
       }
       case 'crouch': pose = CR; break;
+      case 'dash': {
+        const dur = this.dashForward ? 0.26 : 0.24;
+        const u = Math.min(1, t / dur);
+        const lean = this.dashForward ? 0.4 : -0.32;
+        const fold = 1 - Math.max(0, u - 0.55) / 0.45 * 0.6;
+        pose = {
+          ...ST, y: ST.y - 0.06, tl: ST.tl + lean * fold,
+          hL: 0.65 * fold, kL: -0.25 - 0.3 * fold, hR: 0.55 * fold, kR: -0.25 - 0.3 * fold,
+          sL: ST.sL - (this.dashForward ? 0.25 : -0.2) * fold, sR: ST.sR + (this.dashForward ? 0.25 : -0.2) * fold,
+        };
+        break;
+      }
       case 'prejump': pose = { ...ST, y: -0.22, tl: 0.25, kL: -0.9, kR: -0.8, hL: 0.5, hR: 0.3 }; break;
       case 'air': {
         const k = Math.max(-0.3, Math.min(0.3, -this.vy * 0.04));
@@ -551,7 +632,15 @@ export class Fighter {
       }
       case 'getup': pose = lerpPose(KD, ST, Math.min(1, t / 0.35)); break;
       case 'wallsplat': pose = WALLSPLAT; break;
-      case 'thrown': pose = { ...HIT_M, y: this.pos.y > 0.05 ? 0 : HIT_M.y }; break;
+      case 'thrown': {
+        if (this.throwClip) {
+          const u = this.throwDur > 0 ? Math.min(1, this.throwT / this.throwDur) : 1;
+          pose = sampleClip(this.throwClip, u);
+        } else {
+          pose = HIT_M;
+        }
+        break;
+      }
       case 'win': {
         const b = Math.sin(t * 3) * 0.03;
         pose = { ...WIN, y: b };

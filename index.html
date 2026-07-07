@@ -81,6 +81,27 @@
   .pip { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #d8c67a; background: transparent; }
   .pip.won { background: radial-gradient(#fff35e, #ff9d00); box-shadow: 0 0 8px #ffb300; }
 
+  /* ---------- practice mode ---------- */
+  #hud.practice #timer, #hud.practice .pips { display: none; }
+  #practiceLabel {
+    display: none; font-size: 20px; font-weight: 900; color: #7fd0ff;
+    text-shadow: 0 0 10px rgba(80,180,255,.8), 0 3px 5px #000; letter-spacing: 2px;
+  }
+  #hud.practice #practiceLabel { display: block; }
+  #practiceStatus {
+    display: none; position: absolute; top: 100px; left: 0; right: 0; text-align: center;
+    font-size: 13px; color: #cfe8ff; text-shadow: 0 2px 4px #000; letter-spacing: .5px;
+  }
+  #hud.practice #practiceStatus { display: block; }
+  #practiceStatus b { color: #ffd54a; }
+  #practicePanel {
+    display: none; position: absolute; bottom: 18px; left: 18px;
+    background: rgba(15,10,30,.82); border: 2px solid #4a3f6f; border-radius: 6px;
+    padding: 12px 16px; font-size: 13px; color: #d9ccff; line-height: 1.85; max-width: 320px;
+  }
+  #practicePanel.on { display: block; }
+  #practicePanel b { color: #ffd54a; display: block; margin-bottom: 4px; font-size: 14px; }
+
   .combo {
     position: absolute; top: 130px; font-size: 26px; font-weight: 900;
     color: #ffdf4a; text-shadow: 0 0 12px rgba(255,60,0,.95), 0 3px 4px #000;
@@ -151,9 +172,9 @@
 
   /* ---------- character select ---------- */
   #charselect h2 { font-size: 30px; letter-spacing: 3px; margin-bottom: 30px; color: #ffe8a0; }
-  #csGrid { display: flex; gap: 18px; }
+  #csGrid { display: flex; gap: 13px; flex-wrap: wrap; justify-content: center; max-width: 1080px; }
   .csCard {
-    width: 170px; padding: 16px 12px 14px; text-align: center; cursor: pointer;
+    width: 150px; padding: 14px 10px 12px; text-align: center; cursor: pointer;
     background: rgba(25,20,45,.85); border: 3px solid #3a3358; border-radius: 6px;
     transition: transform .1s, border-color .1s, box-shadow .1s;
   }
@@ -183,7 +204,13 @@
     flex-direction: column; align-items: center; justify-content: center;
   }
   #pauseOverlay.on { display: flex; }
-  #pauseOverlay h2 { font-size: 40px; letter-spacing: 8px; margin-bottom: 26px; color: #ffd34a; }
+  #pauseOverlay h2 { font-size: 40px; letter-spacing: 8px; margin-bottom: 22px; color: #ffd34a; }
+  #pauseMenu { margin-bottom: 30px; }
+  .pauseOpt {
+    font-size: 21px; font-weight: 700; padding: 7px 30px; margin: 4px; color: #e8e0ff;
+    border: 2px solid transparent; cursor: pointer;
+  }
+  .pauseOpt.sel { color: #fff; border-color: #ffb300; background: rgba(255,140,0,.18); text-shadow: 0 0 10px #ff9500; }
   .ctrlTable { display: flex; gap: 60px; text-align: left; font-size: 14px; line-height: 2.1; color: #cfc4ee; }
   .ctrlTable b { color: #fff; display: block; margin-bottom: 4px; font-size: 16px; }
 </style>
@@ -205,6 +232,7 @@
         <div id="timer">60</div>
         <div class="pips" id="pips0"><div class="pip"></div><div class="pip"></div></div>
         <div class="pips" id="pips1"><div class="pip"></div><div class="pip"></div></div>
+        <div id="practiceLabel">연습장</div>
       </div>
       <div class="hpSide right">
         <div class="hpName" id="name1">NINA</div>
@@ -217,6 +245,8 @@
     <div class="combo" id="combo1"></div>
     <div id="announce"></div>
     <div id="subAnnounce"></div>
+    <div id="practiceStatus"></div>
+    <div id="practicePanel"></div>
   </div>
 
   <div class="screen on" id="title">
@@ -224,8 +254,9 @@
     <h2>STREET FIGHTER × TEKKEN — 3D BATTLE PROTOTYPE</h2>
     <div class="menuOpt" data-mode="cpu">1인 대전 (VS CPU)</div>
     <div class="menuOpt" data-mode="2p">2인 대전 (VS 2P)</div>
+    <div class="menuOpt" data-mode="practice">연습장 (PRACTICE)</div>
     <div class="hintLine">
-      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동 &nbsp;|&nbsp;
+      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동 (연타 = 대시) &nbsp;|&nbsp;
       <kbd>J</kbd> 펀치 &nbsp; <kbd>K</kbd> 킥 &nbsp; <kbd>L</kbd> 스킬 &nbsp; <kbd>I</kbd> 잡기 &nbsp;|&nbsp; 게임패드 지원 🎮<br>
       스킬은 <kbd>L</kbd> 단독 / <kbd>→</kbd>+<kbd>L</kbd> / <kbd>←</kbd>+<kbd>L</kbd> / <kbd>↓</kbd>+<kbd>L</kbd> 로 4가지 발동
       &nbsp;|&nbsp; 슈퍼: 게이지 MAX 시 <kbd>J</kbd>+<kbd>K</kbd> 동시 (또는 <kbd>U</kbd>)<br>
@@ -252,6 +283,14 @@
         <div class="csSwatch"></div><b>아스카</b><span>ASUKA<br>반격기 · 묵직한 한방</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
+      <div class="csCard" data-char="zangief" style="--c1:#c02525;--c2:#1a1a1a;--cSkin:#e8b48a">
+        <div class="csSwatch"></div><b>장기에프</b><span>ZANGIEF<br>거구 · 커맨드 그랩</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard" data-char="rmika" style="--c1:#f04a9c;--c2:#ffffff;--cSkin:#f2c9a0">
+        <div class="csSwatch"></div><b>R. 미카</b><span>R. MIKA<br>수플렉스 · 잡기 압박</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
     </div>
     <p id="csHint">
       이동 <kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> · 결정 <kbd>Enter</kbd>/<kbd>J</kbd> (P2: <kbd>Num1</kbd>/<kbd>N</kbd>) · 뒤로 <kbd>Esc</kbd><br>
@@ -266,15 +305,21 @@
 
   <div id="pauseOverlay">
     <h2>PAUSE</h2>
+    <div id="pauseMenu">
+      <div class="pauseOpt sel" data-act="resume">계속하기</div>
+      <div class="pauseOpt" data-act="restart" id="pauseRestartOpt">라운드 재시작</div>
+      <div class="pauseOpt" data-act="exit">메인 메뉴로 나가기</div>
+    </div>
     <div class="ctrlTable">
       <div id="pauseP1"></div>
       <div id="pauseP2"></div>
     </div>
     <p style="margin-top:26px;font-size:13px;color:#9a8fc0;text-align:center;line-height:2">
+      대시: 이동키 <b style="color:#ffd34a">2번 연타</b> (앞대시/뒤대시) &nbsp;|&nbsp;
       기상 이지선다: 다운 중 <b style="color:#ffd34a">펀치</b>=기상 미들킥 · <b style="color:#ffd34a">킥</b>=기상 하단킥 ·
       <b style="color:#ffd34a">뒤</b>=백롤 · <b style="color:#ffd34a">↓유지</b>=눕기 지속<br>
       슈퍼 아츠: 게이지 MAX 시 <b style="color:#ffd34a">펀치+킥 동시</b> (P1 <kbd>U</kbd> / P2 <kbd>Num6</kbd> / 패드 <kbd>RB</kbd>)<br>
-      <kbd>P</kbd> 계속하기 · <kbd>Esc</kbd> 타이틀로
+      <kbd>↑↓</kbd>/<kbd>Enter</kbd> 메뉴 선택 · <kbd>P</kbd> 빠른 재개 · <kbd>Esc</kbd> 뒤로
     </p>
   </div>
 </div>

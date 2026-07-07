@@ -5,12 +5,13 @@ import { Fighter } from './fighter.js';
 import { WALL_X } from './stage.js';
 import { Sound } from './audio.js';
 import { UI } from './ui.js';
+import { AI } from './ai.js';
 
 const ROUND_TIME = 60;
 const ROUNDS_TO_WIN = 2;
 
 export class Game {
-  constructor(scene, fx, charA, charB, ctrlA, ctrlB) {
+  constructor(scene, fx, charA, charB, ctrlA, ctrlB, opts = {}) {
     this.scene = scene;
     this.fx = fx;
     this.fighters = [
@@ -29,12 +30,18 @@ export class Game {
     this.projectiles = [];
     this.combo = [{ hits: 0, dmg: 0 }, { hits: 0, dmg: 0 }];
     this.roundWins = [0, 0];
-    this.phase = 'roundIntro'; // roundIntro | fight | koSlow | roundEnd | matchEnd
+    this.phase = 'roundIntro'; // roundIntro | fight | koSlow | roundEnd | matchEnd | practice
     this.phaseT = 0;
     this.round = 1;
     this.timer = ROUND_TIME;
     this.onMatchEnd = null;
-    this.startRound();
+
+    this.practiceMode = !!opts.practice;
+    this.dummyMode = 'stand'; // stand | guard | crouchguard | cpu
+    this.dummyAI = null;
+    this.forceGaugeMax = false;
+
+    if (this.practiceMode) this.startPractice(); else this.startRound();
   }
 
   startRound() {
@@ -56,7 +63,82 @@ export class Game {
   }
 
   // ------------------------------------------------------------------
+  // Practice mode: free play, no KO/round flow, togglable dummy behavior + gauge.
+  startPractice() {
+    for (const p of this.projectiles) this.scene.remove(p.mesh);
+    this.projectiles = [];
+    const [a, b] = this.fighters;
+    a.reset(-1.6, 1);
+    b.reset(1.6, -1);
+    a.inputLocked = b.inputLocked = false;
+    this.phase = 'practice';
+    this.phaseT = 0;
+    this.combo = [{ hits: 0, dmg: 0 }, { hits: 0, dmg: 0 }];
+    UI.resetBars();
+  }
+
+  resetPracticePositions() {
+    const [a, b] = this.fighters;
+    const keepA = a.meter, keepB = b.meter;
+    a.reset(-1.6, 1);
+    b.reset(1.6, -1);
+    a.meter = this.forceGaugeMax ? 100 : keepA;
+    b.meter = this.forceGaugeMax ? 100 : keepB;
+    this.combo = [{ hits: 0, dmg: 0 }, { hits: 0, dmg: 0 }];
+  }
+
+  cycleDummyMode() {
+    const order = ['stand', 'guard', 'crouchguard', 'cpu'];
+    this.dummyMode = order[(order.indexOf(this.dummyMode) + 1) % order.length];
+    if (this.dummyMode === 'cpu' && !this.dummyAI) {
+      this.dummyAI = new AI(this.fighters[1], this.fighters[0]);
+    }
+    return this.dummyMode;
+  }
+
+  applyDummyBehavior(dt) {
+    const dummy = this.fighters[1];
+    const c = dummy.ctrl;
+    if (!c.clearHolds) return; // not a virtual controller — skip (human P2)
+    if (this.dummyMode === 'cpu') {
+      this.dummyAI?.update(dt);
+      return;
+    }
+    c.clearHolds();
+    if (this.dummyMode === 'guard') {
+      c.hold(dummy.facing > 0 ? 'left' : 'right');
+    } else if (this.dummyMode === 'crouchguard') {
+      c.hold(dummy.facing > 0 ? 'left' : 'right');
+      c.hold('down');
+    }
+  }
+
+  updatePracticeStep(dt) {
+    const [a, b] = this.fighters;
+    for (const f of this.fighters) {
+      if (f.canAct() && f.grounded) f.facing = f.opponent.pos.x >= f.pos.x ? 1 : -1;
+    }
+    if (this.forceGaugeMax) { a.meter = 100; b.meter = 100; }
+    this.applyDummyBehavior(dt);
+
+    a.update(dt, this);
+    b.update(dt, this);
+
+    this.updateThrows(dt);
+    this.resolveBodyPush(a, b);
+    this.applyWalls(a);
+    this.applyWalls(b);
+    this.updateProjectiles(dt);
+
+    for (let i = 0; i < 2; i++) {
+      const victim = this.fighters[1 - i];
+      if (this.combo[i].hits > 0 && !this.isComboState(victim)) this.combo[i] = { hits: 0, dmg: 0 };
+    }
+  }
+
+  // ------------------------------------------------------------------
   update(dt) {
+    if (this.practiceMode) { this.updatePracticeStep(dt); return; }
     this.phaseT += dt;
 
     switch (this.phase) {
@@ -357,6 +439,12 @@ export class Game {
   }
 
   // ------------------------------------------------------------------
+  // Throws run in two clearly separated stages so nothing ever looks skipped:
+  //  1. catch+execute (throwCatch+throwLift): both fighters locked into a shared,
+  //     fully-keyframed clip (see moves.js hipTossThrow/suplexThrow/piledriverThrow).
+  //  2. impact: victim hands off to the normal hit/knockdown reaction.
+  // The attacker's own move is swapped for a scripted "follow-through" so its pose
+  // timeline (attackerAnim) is driven independently of the whiffable reach-in clip.
   tryThrow(attacker, mv) {
     const victim = attacker.opponent;
     if (victim.isInvulnerable() || victim.airborne) return;
@@ -364,49 +452,66 @@ export class Game {
     const dist = Math.abs(victim.pos.x - attacker.pos.x);
     if (dist > mv.range) return;
 
+    const dir = attacker.facing;
+    const ai = this.fighters.indexOf(attacker);
+    const catchT = mv.throwCatch ?? 0.14;
+    const liftT = mv.throwLift ?? 0.3;
+    const holdDur = catchT + liftT;
+
     victim.state = 'thrown';
     victim.stateT = 0;
     victim.move = null;
-    attacker.moveConnected = true; // attacker stays in 'attack'; anim continues
-    Sound.beep();
+    victim.pos.y = 0;
+    victim.facing = -dir;
+    victim.throwClip = mv.victimAnim || null;
+    victim.throwT = 0;
+    victim.throwDur = holdDur;
 
-    const dir = attacker.facing;
-    const ai = this.fighters.indexOf(attacker);
-    // release after throwDur: damage + launch
+    // attacker: swap into a scripted, non-hitting follow-through so its own pose
+    // timeline is decoupled from the (already-finished) whiffable reach clip.
+    attacker.startMove({
+      name: mv.name, anim: mv.attackerAnim || mv.anim, limbs: [], radius: 0,
+      startup: 0, active: 0, recovery: holdDur + (mv.recovery ?? 0.4),
+    });
+    attacker.moveConnected = true;
+
+    Sound.beep();
+    this.fx.hitstop(0.05); // sell the catch
+    this.fx.spark(victim.pos.x, victim.pos.y + 1.0, 0xffe27a, 8, 2);
+
     const release = () => {
       if (victim.state !== 'thrown') return;
+      victim.throwClip = null;
       const contact = { x: victim.pos.x, y: victim.pos.y + 1.1 };
-      victim.applyHit({ damage: mv.damage, level: 'mid', kb: mv.kb, kbUp: mv.kbUp, hitstun: 0.5 }, dir, {});
+      victim.applyHit({ damage: mv.damage, level: 'mid', kb: mv.kb, kbUp: mv.kbUp, hitstun: 0.5, knockdown: mv.knockdown }, dir, {});
       attacker.addMeter(8);
       victim.addMeter(mv.damage * 0.045);
       this.combo[ai] = { hits: 1, dmg: mv.damage };
-      this.fx.spark(contact.x, contact.y, 0xffcf6e, 16, 5);
-      this.fx.hitstop(0.09);
-      this.fx.shake(0.3);
+      this.fx.spark(contact.x, contact.y, 0xffcf6e, 18, 5.5);
+      this.fx.ring(contact.x, contact.y, 0xffe08a);
+      this.fx.hitstop(mv.isCommandThrow ? 0.16 : 0.09);
+      this.fx.shake(mv.isCommandThrow ? 0.42 : 0.3);
       Sound.slam();
       this.spawnDamageNumber(contact, mv.damage, false);
       if (victim.health <= 0 && this.phase === 'fight') this.ko(victim);
     };
-    victim.throwRelease = release;
-    attacker.throwTimer = mv.throwDur;
-    attacker.throwVictim = victim;
 
-    // schedule via game loop: store on attacker, handled in updateThrows
-    this.activeThrow = { attacker, victim, t: 0, dur: mv.throwDur, release, dir };
+    this.activeThrow = { attacker, victim, t: 0, dur: holdDur, release, dir, fired: false };
   }
 
   updateThrows(dt) {
     const th = this.activeThrow;
     if (!th) return;
     th.t += dt;
-    // drag victim in front of attacker, slight lift
     const { attacker, victim } = th;
     if (victim.state === 'thrown') {
+      victim.throwT = Math.min(th.t, th.dur);
       victim.pos.x = attacker.pos.x + th.dir * 0.55;
-      victim.pos.y = Math.sin(Math.min(1, th.t / th.dur) * Math.PI) * 0.5;
+      victim.pos.y = 0;
       victim.facing = -th.dir;
     }
-    if (th.t >= th.dur) {
+    if (th.t >= th.dur && !th.fired) {
+      th.fired = true;
       th.release();
       this.activeThrow = null;
     }

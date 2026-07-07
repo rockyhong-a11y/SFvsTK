@@ -49,7 +49,7 @@ await page.screenshot({ path: SHOT + '/11-launcher.png' });
 await page.waitForTimeout(1200);
 
 // --- Scenario 3: grind P1 down to KO with kicks ---
-for (let i = 0; i < 40; i++) {
+for (let i = 0; i < 90; i++) {
   await page.keyboard.down('ArrowLeft');
   await page.waitForTimeout(260);
   await page.keyboard.up('ArrowLeft');
@@ -68,7 +68,7 @@ console.log('nina pips:', JSON.stringify(pips));
 
 // --- Scenario 4: round 2 KO -> match end ---
 await page.waitForTimeout(1600); // wait FIGHT!
-for (let i = 0; i < 45; i++) {
+for (let i = 0; i < 90; i++) {
   await page.keyboard.down('ArrowLeft');
   await page.waitForTimeout(260);
   await page.keyboard.up('ArrowLeft');

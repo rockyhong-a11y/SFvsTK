@@ -81,6 +81,27 @@
   .pip { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #d8c67a; background: transparent; }
   .pip.won { background: radial-gradient(#fff35e, #ff9d00); box-shadow: 0 0 8px #ffb300; }
 
+  /* ---------- practice mode ---------- */
+  #hud.practice #timer, #hud.practice .pips { display: none; }
+  #practiceLabel {
+    display: none; font-size: 20px; font-weight: 900; color: #7fd0ff;
+    text-shadow: 0 0 10px rgba(80,180,255,.8), 0 3px 5px #000; letter-spacing: 2px;
+  }
+  #hud.practice #practiceLabel { display: block; }
+  #practiceStatus {
+    display: none; position: absolute; top: 100px; left: 0; right: 0; text-align: center;
+    font-size: 13px; color: #cfe8ff; text-shadow: 0 2px 4px #000; letter-spacing: .5px;
+  }
+  #hud.practice #practiceStatus { display: block; }
+  #practiceStatus b { color: #ffd54a; }
+  #practicePanel {
+    display: none; position: absolute; bottom: 18px; left: 18px;
+    background: rgba(15,10,30,.82); border: 2px solid #4a3f6f; border-radius: 6px;
+    padding: 12px 16px; font-size: 13px; color: #d9ccff; line-height: 1.85; max-width: 320px;
+  }
+  #practicePanel.on { display: block; }
+  #practicePanel b { color: #ffd54a; display: block; margin-bottom: 4px; font-size: 14px; }
+
   .combo {
     position: absolute; top: 130px; font-size: 26px; font-weight: 900;
     color: #ffdf4a; text-shadow: 0 0 12px rgba(255,60,0,.95), 0 3px 4px #000;
@@ -151,9 +172,9 @@
 
   /* ---------- character select ---------- */
   #charselect h2 { font-size: 30px; letter-spacing: 3px; margin-bottom: 30px; color: #ffe8a0; }
-  #csGrid { display: flex; gap: 18px; }
+  #csGrid { display: flex; gap: 13px; flex-wrap: wrap; justify-content: center; max-width: 1080px; }
   .csCard {
-    width: 170px; padding: 16px 12px 14px; text-align: center; cursor: pointer;
+    width: 150px; padding: 14px 10px 12px; text-align: center; cursor: pointer;
     background: rgba(25,20,45,.85); border: 3px solid #3a3358; border-radius: 6px;
     transition: transform .1s, border-color .1s, box-shadow .1s;
   }
@@ -183,7 +204,13 @@
     flex-direction: column; align-items: center; justify-content: center;
   }
   #pauseOverlay.on { display: flex; }
-  #pauseOverlay h2 { font-size: 40px; letter-spacing: 8px; margin-bottom: 26px; color: #ffd34a; }
+  #pauseOverlay h2 { font-size: 40px; letter-spacing: 8px; margin-bottom: 22px; color: #ffd34a; }
+  #pauseMenu { margin-bottom: 30px; }
+  .pauseOpt {
+    font-size: 21px; font-weight: 700; padding: 7px 30px; margin: 4px; color: #e8e0ff;
+    border: 2px solid transparent; cursor: pointer;
+  }
+  .pauseOpt.sel { color: #fff; border-color: #ffb300; background: rgba(255,140,0,.18); text-shadow: 0 0 10px #ff9500; }
   .ctrlTable { display: flex; gap: 60px; text-align: left; font-size: 14px; line-height: 2.1; color: #cfc4ee; }
   .ctrlTable b { color: #fff; display: block; margin-bottom: 4px; font-size: 16px; }
 </style>
@@ -202,6 +229,7 @@
         <div id="timer">60</div>
         <div class="pips" id="pips0"><div class="pip"></div><div class="pip"></div></div>
         <div class="pips" id="pips1"><div class="pip"></div><div class="pip"></div></div>
+        <div id="practiceLabel">연습장</div>
       </div>
       <div class="hpSide right">
         <div class="hpName" id="name1">NINA</div>
@@ -214,6 +242,8 @@
     <div class="combo" id="combo1"></div>
     <div id="announce"></div>
     <div id="subAnnounce"></div>
+    <div id="practiceStatus"></div>
+    <div id="practicePanel"></div>
   </div>
 
   <div class="screen on" id="title">
@@ -221,8 +251,9 @@
     <h2>STREET FIGHTER × TEKKEN — 3D BATTLE PROTOTYPE</h2>
     <div class="menuOpt" data-mode="cpu">1인 대전 (VS CPU)</div>
     <div class="menuOpt" data-mode="2p">2인 대전 (VS 2P)</div>
+    <div class="menuOpt" data-mode="practice">연습장 (PRACTICE)</div>
     <div class="hintLine">
-      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동 &nbsp;|&nbsp;
+      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동 (연타 = 대시) &nbsp;|&nbsp;
       <kbd>J</kbd> 펀치 &nbsp; <kbd>K</kbd> 킥 &nbsp; <kbd>L</kbd> 스킬 &nbsp; <kbd>I</kbd> 잡기 &nbsp;|&nbsp; 게임패드 지원 🎮<br>
       스킬은 <kbd>L</kbd> 단독 / <kbd>→</kbd>+<kbd>L</kbd> / <kbd>←</kbd>+<kbd>L</kbd> / <kbd>↓</kbd>+<kbd>L</kbd> 로 4가지 발동
       &nbsp;|&nbsp; 슈퍼: 게이지 MAX 시 <kbd>J</kbd>+<kbd>K</kbd> 동시 (또는 <kbd>U</kbd>)<br>
@@ -249,6 +280,14 @@
         <div class="csSwatch"></div><b>아스카</b><span>ASUKA<br>반격기 · 묵직한 한방</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
+      <div class="csCard" data-char="zangief" style="--c1:#c02525;--c2:#1a1a1a;--cSkin:#e8b48a">
+        <div class="csSwatch"></div><b>장기에프</b><span>ZANGIEF<br>거구 · 커맨드 그랩</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard" data-char="rmika" style="--c1:#f04a9c;--c2:#ffffff;--cSkin:#f2c9a0">
+        <div class="csSwatch"></div><b>R. 미카</b><span>R. MIKA<br>수플렉스 · 잡기 압박</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
     </div>
     <p id="csHint">
       이동 <kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> · 결정 <kbd>Enter</kbd>/<kbd>J</kbd> (P2: <kbd>Num1</kbd>/<kbd>N</kbd>) · 뒤로 <kbd>Esc</kbd><br>
@@ -263,15 +302,21 @@
 
   <div id="pauseOverlay">
     <h2>PAUSE</h2>
+    <div id="pauseMenu">
+      <div class="pauseOpt sel" data-act="resume">계속하기</div>
+      <div class="pauseOpt" data-act="restart" id="pauseRestartOpt">라운드 재시작</div>
+      <div class="pauseOpt" data-act="exit">메인 메뉴로 나가기</div>
+    </div>
     <div class="ctrlTable">
       <div id="pauseP1"></div>
       <div id="pauseP2"></div>
     </div>
     <p style="margin-top:26px;font-size:13px;color:#9a8fc0;text-align:center;line-height:2">
+      대시: 이동키 <b style="color:#ffd34a">2번 연타</b> (앞대시/뒤대시) &nbsp;|&nbsp;
       기상 이지선다: 다운 중 <b style="color:#ffd34a">펀치</b>=기상 미들킥 · <b style="color:#ffd34a">킥</b>=기상 하단킥 ·
       <b style="color:#ffd34a">뒤</b>=백롤 · <b style="color:#ffd34a">↓유지</b>=눕기 지속<br>
       슈퍼 아츠: 게이지 MAX 시 <b style="color:#ffd34a">펀치+킥 동시</b> (P1 <kbd>U</kbd> / P2 <kbd>Num6</kbd> / 패드 <kbd>RB</kbd>)<br>
-      <kbd>P</kbd> 계속하기 · <kbd>Esc</kbd> 타이틀로
+      <kbd>↑↓</kbd>/<kbd>Enter</kbd> 메뉴 선택 · <kbd>P</kbd> 빠른 재개 · <kbd>Esc</kbd> 뒤로
     </p>
   </div>
 </div>
@@ -611,6 +656,7 @@ function buildRig(cfg) {
   const root = new THREE.Group();
   const spin = new THREE.Group(); // for ry spins
   root.add(spin);
+  if (cfg.scale) spin.scale.setScalar(cfg.scale);
 
   const pelvis = new THREE.Group();
   pelvis.position.y = 0.95;
@@ -825,12 +871,84 @@ const KD = { rz: 1.5, y: -0.72, tl: 0, sL: -0.3, eL: 0.3, sR: -0.4, eR: 0.2, sxL
 const WALLSPLAT = { y: -0.02, rz: -0.18, tl: -0.15, sL: 1.4, eL: 0.6, sR: 1.2, eR: 0.5, sxL: 1.0, sxR: 1.0, hL: 0.4, kL: -0.3, hR: -0.1, kR: -0.2 };
 const CRUMPLE_A = { y: -0.3, tl: 0.55, sL: 0.3, eL: 0.9, sR: 0.2, eR: 0.8, hL: 1.1, kL: -1.9, hR: 0.9, kR: -1.8 };
 const WIN = { y: 0, tl: -0.1, sL: 2.6, eL: 0.2, sR: 2.4, eR: 0.3, sxL: 0.4, sxR: 0.4, hL: 0.1, kL: -0.2, hR: -0.1, kR: -0.1 };
-const THROW_A = [ // attacker throw anim (duration set by move)
+// ---------- throw sequences ----------
+// A throw has 3 clearly separated phases so it never appears to "skip":
+//   1. reach  (startup+active, whiffable)              — attacker only, existing 'attack' timeline
+//   2. catch+execute (throwCatch+throwLift, unblockable) — attacker+victim locked together, driven by Game
+//   3. impact (instant) -> victim hands off to the normal hit/knockdown reaction
+// attacker/victim clips below are normalized 0..1 over (throwCatch+throwLift).
+const THROW_REACH = [ // whiffable reach-in, played during startup+active if the grab misses
   [0, ST],
-  [0.25, { y: -0.1, tl: 0.3, tw: 0.2, sL: 1.4, eL: 0.5, sR: 1.3, eR: 0.4, hL: 0.4, kL: -0.6, hR: -0.2, kR: -0.4 }],
-  [0.55, { y: -0.2, tl: -0.4, tw: 1.2, sL: 2.2, eL: 0.3, sR: 0.4, eR: 0.9, hL: 0.5, kL: -0.8, hR: -0.3, kR: -0.4 }],
-  [1, ST],
+  [0.6, { y: -0.08, tl: 0.18, tw: 0.1, sL: 1.1, eL: 0.9, sR: 1.0, eR: 1.0, hL: 0.4, kL: -0.6 }],
+  [1, { y: -0.06, tl: 0.15, tw: 0.15, sL: 1.2, eL: 0.8, sR: 1.1, eR: 0.9, hL: 0.4, kL: -0.6 }],
 ];
+
+function hipTossThrow() {
+  const attacker = [
+    [0, { y: -0.05, tl: 0.12, tw: -0.1, sL: 1.25, eL: 0.5, sR: 1.15, eR: 0.6, hL: 0.4, kL: -0.6, hR: -0.1, kR: -0.4 }],
+    [0.32, { y: -0.04, tl: 0.05, tw: 0.35, sL: 1.55, eL: 0.2, sR: 1.4, eR: 0.3, hL: 0.5, kL: -0.7 }],
+    [0.66, { y: -0.02, tl: -0.28, tw: 1.15, sL: 2.15, eL: 0.15, sR: 0.5, eR: 0.9, hL: 0.55, kL: -0.75, ry: 0.9 }],
+    [1, { y: -0.05, tl: -0.12, tw: 0.75, sL: 1.8, eL: 0.3, sR: 0.4, eR: 1.0, ry: 1.15 }],
+  ];
+  const victim = [
+    [0, { y: -0.02, tl: -0.15, tw: 0.1, sL: 0.6, eL: 1.6, sR: 0.6, eR: 1.6, hL: 0.35, kL: -0.5, hR: -0.15, kR: -0.4 }],
+    [0.32, { y: 0.35, tl: 0.35, tw: -0.3, sL: -0.3, eL: 0.9, sR: -0.3, eR: 0.9, hL: 0.9, kL: -0.3, hR: 0.7, kR: -0.5, rz: 0.25 }],
+    [0.66, { y: 0.78, tl: 0.15, tw: -0.6, rz: 0.95, sL: -0.6, eL: 0.5, sR: -0.6, eR: 0.5, hL: 1.1, kL: -0.15, hR: 1.0, kR: -0.2 }],
+    [1, { y: 0.55, rz: 1.5, tl: 0, sL: -0.4, eL: 0.5, sR: -0.4, eR: 0.5, hL: 0.6, kL: -0.5, hR: 0.5, kR: -0.5 }],
+  ];
+  return { attacker, victim };
+}
+
+// belly-to-back suplex: lift the victim inverted overhead, bridge, slam behind.
+function suplexThrow() {
+  const attacker = [
+    [0, { y: -0.1, tl: 0.2, tw: 0, sL: 1.3, eL: 1.0, sR: 1.3, eR: 1.0, hL: 0.5, kL: -0.7, hR: 0.3, kR: -0.5 }],
+    [0.3, { y: -0.05, tl: -0.1, tw: 0, sL: 1.6, eL: 0.6, sR: 1.6, eR: 0.6, hL: 0.6, kL: -0.6, hR: 0.5, kR: -0.5 }],
+    [0.65, { y: 0.2, tl: -0.55, tw: 0, sL: 2.05, eL: 0.3, sR: 2.05, eR: 0.3, hL: 0.7, kL: -0.4, hR: 0.6, kR: -0.3, rz: -0.35 }],
+    [1, { y: -0.08, tl: -0.35, tw: 0, sL: 1.8, eL: 0.4, sR: 1.8, eR: 0.4, hL: 0.5, kL: -0.5, hR: 0.4, kR: -0.4, rz: -0.15 }],
+  ];
+  const victim = [
+    [0, { y: -0.05, tl: 0, tw: 0, sL: 1.1, eL: 1.2, sR: 1.1, eR: 1.2, hL: 0.35, kL: -0.5, hR: 0.35, kR: -0.5 }],
+    [0.3, { y: 0.5, tl: 0.1, tw: 0, rz: 2.6, sL: -0.5, eL: 0.6, sR: -0.5, eR: 0.6, hL: 0.6, kL: -0.3, hR: 0.6, kR: -0.3 }],
+    [0.65, { y: 1.1, tl: 0.2, tw: 0, rz: 3.05, sL: -0.7, eL: 0.4, sR: -0.7, eR: 0.4, hL: 0.9, kL: -0.15, hR: 0.9, kR: -0.15 }],
+    [1, { y: 0.88, tl: 0.15, tw: 0, rz: 3.05, sL: -0.6, eL: 0.5, sR: -0.6, eR: 0.5, hL: 0.75, kL: -0.2, hR: 0.75, kR: -0.2 }],
+  ];
+  return { attacker, victim };
+}
+
+// piledriver: flip the victim head-down and drive them straight into the mat.
+function piledriverThrow() {
+  const attacker = [
+    [0, { y: -0.1, tl: 0.25, tw: 0, sL: 1.2, eL: 1.1, sR: 1.2, eR: 1.1, hL: 0.5, kL: -0.7 }],
+    [0.35, { y: 0.2, tl: -0.3, tw: 0, sL: 1.7, eL: 0.5, sR: 1.7, eR: 0.5, hL: 0.7, kL: -0.35, rz: -0.15 }],
+    [0.7, { y: 0.5, tl: -0.6, tw: 0, sL: 2.1, eL: 0.2, sR: 2.1, eR: 0.2, hL: 0.85, kL: -0.15, rz: -0.35 }],
+    [1, { y: -0.18, tl: 0.08, tw: 0, sL: 1.9, eL: 0.3, sR: 1.9, eR: 0.3, hL: 0.6, kL: -0.5, rz: -0.1 }],
+  ];
+  const victim = [
+    [0, { y: 0, tl: 0, tw: 0, sL: 1.0, eL: 1.3, sR: 1.0, eR: 1.3 }],
+    [0.35, { y: 0.65, rz: 3.0, sL: -0.6, eL: 0.4, sR: -0.6, eR: 0.4, hL: 0.15, kL: -0.15, hR: 0.15, kR: -0.15 }],
+    [0.7, { y: 1.18, rz: 3.14, sL: -0.7, eL: 0.35, sR: -0.7, eR: 0.35, hL: 0.05, kL: -0.1, hR: 0.05, kR: -0.1 }],
+    [1, { y: 0.1, rz: 3.14, sL: -0.5, eL: 0.5, sR: -0.5, eR: 0.5, hL: 0.1, kL: -0.15, hR: 0.1, kR: -0.15 }],
+  ];
+  return { attacker, victim };
+}
+
+const THROW_STYLES = { hiptoss: hipTossThrow, suplex: suplexThrow, piledriver: piledriverThrow };
+
+// bundles the whiff (reach) clip with the connect (catch+execute) clips + phase timing.
+function throwMove({
+  name, style = 'hiptoss', startup, active, recovery,
+  catchT = 0.14, liftT = 0.32, damage, range, kb = 0, kbUp = 0, knockdown, isCommandThrow,
+}) {
+  const seq = THROW_STYLES[style]();
+  return {
+    name, isThrow: true, isSkill: !!isCommandThrow, startup, active, recovery,
+    damage, range, kb, kbUp, knockdown, isCommandThrow,
+    throwCatch: catchT, throwLift: liftT,
+    anim: THROW_REACH, attackerAnim: seq.attacker, victimAnim: seq.victim,
+    sound: 'whoosh',
+  };
+}
 
 // standard strike anim builder: windup -> extend during active -> recover
 function strike(su, act, rec, windup, extend, recover = ST) {
@@ -953,11 +1071,10 @@ const CHUNLI = {
       limbs: ['footR'], radius: 0.34, sound: 'whoosh',
       anim: [[0, AIR], [0.3, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1, hL: 1.2, kL: -2.0 }], [1, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1 }]],
     },
-    grab: {
-      name: '용성락', startup: 0.13, active: 0.06, recovery: 0.5, isThrow: true,
-      damage: 110, range: 1.0, kb: 5.5, kbUp: 4.5, sound: 'whoosh',
-      anim: THROW_A, throwDur: 0.55,
-    },
+    grab: throwMove({
+      name: '용성락', startup: 0.13, active: 0.06, recovery: 0.5,
+      catchT: 0.14, liftT: 0.32, damage: 110, range: 1.0, kb: 5.5, kbUp: 4.5,
+    }),
     skillN: {
       name: '기공권', startup: 0.24, active: 0.02, recovery: 0.38, isSkill: true,
       damage: 0, level: 'sm', sound: 'fireball',
@@ -1081,11 +1198,10 @@ const NINA = {
       limbs: ['footR'], radius: 0.34, sound: 'whoosh',
       anim: [[0, AIR], [0.3, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1, hL: 1.2, kL: -2.0 }], [1, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1 }]],
     },
-    grab: {
-      name: '암 브레이커', startup: 0.13, active: 0.06, recovery: 0.5, isThrow: true,
-      damage: 125, range: 1.0, kb: 6.0, kbUp: 4.0, sound: 'whoosh',
-      anim: THROW_A, throwDur: 0.55,
-    },
+    grab: throwMove({
+      name: '암 브레이커', startup: 0.13, active: 0.06, recovery: 0.5,
+      catchT: 0.14, liftT: 0.32, damage: 125, range: 1.0, kb: 6.0, kbUp: 4.0,
+    }),
     skillN: {
       name: '블론드 밤', startup: 0.2, active: 0.08, recovery: 0.44, isSkill: true,
       damage: 85, level: 'mid', hitstun: 0.55, blockstun: 0.32, kb: 10.0, knockdown: true,
@@ -1209,11 +1325,10 @@ const CAMMY = {
       limbs: ['footR'], radius: 0.34, sound: 'whoosh',
       anim: [[0, AIR], [0.3, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1, hL: 1.2, kL: -2.0 }], [1, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1 }]],
     },
-    grab: {
-      name: '프랑켄슈타이너', startup: 0.13, active: 0.06, recovery: 0.5, isThrow: true,
-      damage: 115, range: 1.0, kb: 6.5, kbUp: 5.0, sound: 'whoosh',
-      anim: THROW_A, throwDur: 0.55,
-    },
+    grab: throwMove({
+      name: '프랑켄슈타이너', startup: 0.13, active: 0.06, recovery: 0.5,
+      catchT: 0.14, liftT: 0.32, damage: 115, range: 1.0, kb: 6.5, kbUp: 5.0,
+    }),
     skillN: {
       name: '스핀 너클', startup: 0.26, active: 0.08, recovery: 0.42, isSkill: true,
       damage: 78, level: 'mid', hitstun: 0.6, blockstun: 0.3, kb: 1.2, crumple: true,
@@ -1333,11 +1448,10 @@ const ASUKA = {
       limbs: ['footR'], radius: 0.34, sound: 'whoosh',
       anim: [[0, AIR], [0.3, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1, hL: 1.2, kL: -2.0 }], [1, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1 }]],
     },
-    grab: {
-      name: '어깨 메치기', startup: 0.14, active: 0.06, recovery: 0.5, isThrow: true,
-      damage: 130, range: 1.05, kb: 5.0, kbUp: 5.5, sound: 'whoosh',
-      anim: THROW_A, throwDur: 0.55,
-    },
+    grab: throwMove({
+      name: '어깨 메치기', startup: 0.14, active: 0.06, recovery: 0.5,
+      catchT: 0.14, liftT: 0.32, damage: 130, range: 1.05, kb: 5.0, kbUp: 5.5,
+    }),
     // 반격기: catches high/mid strikes during the window, then auto-counters.
     skillN: {
       name: '백로 반격', startup: 0.06, active: 0.42, recovery: 0.5, isSkill: true,
@@ -1418,7 +1532,248 @@ const ASUKA = {
   },
 };
 
-const CHARACTERS = { chunli: CHUNLI, nina: NINA, cammy: CAMMY, asuka: ASUKA };
+// ============================================================
+// ZANGIEF — grapple specialist: colossal command-throw damage
+// ============================================================
+const ZANGIEF = {
+  id: 'zangief',
+  displayName: 'ZANGIEF',
+  nameKo: '장기에프',
+  health: 1200,
+  walkF: 1.9, walkB: 1.5,
+  jumpVy: 6.3,
+  rig: {
+    skin: 0xe8b48a, top: 0xb31d1d, pants: 0x1a1a1a, glove: 0x7a2a1a,
+    hair: 0x2a2a2a, accent: 0xd8b53a, sleeves: false, scale: 1.17,
+  },
+  moves: {
+    punch: {
+      name: '잽', startup: 0.1, active: 0.07, recovery: 0.22,
+      damage: 34, level: 'high', hitstun: 0.3, blockstun: 0.2, kb: 1.8,
+      limbs: ['fistL'], radius: RAD, cancelable: true, sound: 'whoosh',
+      anim: strike(0.1, 0.07, 0.22,
+        { ...ST, tw: -0.5, sL: 0.7, eL: 2.1 },
+        { y: -0.06, tl: 0.14, tw: 0.35, sL: 1.55, eL: 0.1, sR: 0.4, eR: 1.8, hL: 0.35, kL: -0.5, hR: -0.2, kR: -0.35 }),
+    },
+    kick: {
+      name: '헤비 킥', startup: 0.2, active: 0.09, recovery: 0.36,
+      damage: 82, level: 'mid', hitstun: 0.44, blockstun: 0.28, kb: 4.6,
+      limbs: ['footR'], radius: 0.34, sound: 'whoosh',
+      anim: strike(0.2, 0.09, 0.36,
+        { ...ST, tl: 0.25, tw: -0.6, hR: -0.6, kR: -1.4 },
+        { y: -0.02, tl: -0.1, tw: 0.4, sL: 0.6, eL: 1.5, sR: -0.5, eR: 0.6, hR: 1.5, kR: -1.3, hL: 0.25, kL: -0.45 }),
+    },
+    cpunch: {
+      name: '앉아 잽', startup: 0.1, active: 0.06, recovery: 0.2, crouching: true,
+      damage: 28, level: 'sm', hitstun: 0.25, blockstun: 0.17, kb: 1.3,
+      limbs: ['fistL'], radius: 0.26, cancelable: true, sound: 'whoosh',
+      anim: strike(0.1, 0.06, 0.2, CR, { ...CR, tw: 0.2, sL: 1.35, eL: 0.1 }, CR),
+    },
+    ckick: {
+      name: '앉아 킥', startup: 0.17, active: 0.08, recovery: 0.34, crouching: true,
+      damage: 50, level: 'low', hitstun: 0.36, blockstun: 0.23, kb: 2.2,
+      limbs: ['footR'], radius: 0.3, sound: 'whoosh',
+      anim: strike(0.17, 0.08, 0.34, CR, { ...CR, tl: 0.4, hR: 0.55, kR: -0.05 }, CR),
+    },
+    jpunch: {
+      name: '점프 펀치', startup: 0.1, active: 0.32, recovery: 0.12, air: true,
+      damage: 58, level: 'mid', hitstun: 0.36, blockstun: 0.23, kb: 2.2,
+      limbs: ['fistR'], radius: 0.32, sound: 'whoosh',
+      anim: [[0, AIR], [0.25, { ...AIR, tl: 0.35, sR: 1.1, eR: 0.15 }], [1, { ...AIR, tl: 0.35, sR: 1.1, eR: 0.15 }]],
+    },
+    jkick: {
+      name: '점프 킥', startup: 0.12, active: 0.32, recovery: 0.12, air: true,
+      damage: 66, level: 'mid', hitstun: 0.42, blockstun: 0.27, kb: 3.0,
+      limbs: ['footR'], radius: 0.36, sound: 'whoosh',
+      anim: [[0, AIR], [0.3, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1, hL: 1.2, kL: -2.0 }], [1, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1 }]],
+    },
+    grab: throwMove({
+      name: '바디 슬램', startup: 0.14, active: 0.07, recovery: 0.5,
+      catchT: 0.14, liftT: 0.32, damage: 120, range: 1.15, kb: 5.0, kbUp: 4.0,
+    }),
+    // 커맨드 그랩: 장기에프의 시그니처 스크류 파일드라이버.
+    skillN: throwMove({
+      name: '스크류 파일드라이버', style: 'piledriver', isCommandThrow: true,
+      startup: 0.2, active: 0.09, recovery: 0.55,
+      catchT: 0.18, liftT: 0.42, damage: 175, range: 1.2, knockdown: true,
+    }),
+    skillF: {
+      name: '배니싱 플랫', startup: 0.22, active: 0.1, recovery: 0.4, isSkill: true,
+      damage: 70, level: 'mid', hitstun: 0.4, blockstun: 0.26, kb: 3.0,
+      limbs: ['fistR'], radius: 0.36, fwdSpeed: 2.0, fwdWindow: [0, 0.28],
+      chip: 0.12, sound: 'whoosh',
+      anim: [
+        [0, ST],
+        [0.35, { y: -0.08, tl: 0.15, tw: -0.6, sR: -0.6, eR: 1.0, sL: 0.5, eL: 1.6 }],
+        [0.55, { y: -0.04, tl: 0.1, tw: 0.5, sR: 1.7, eR: 0.15, sL: 0.4, eL: 1.6 }],
+        [0.8, { y: -0.04, tl: 0.1, tw: 0.5, sR: 1.7, eR: 0.15 }],
+        [1, ST],
+      ],
+    },
+    skillB: {
+      name: '더블 라리아트', startup: 0.18, active: 0.4, recovery: 0.38, isSkill: true,
+      damage: 32, level: 'mid', hitstun: 0.24, blockstun: 0.17, kb: 1.2,
+      hits: 2, hitInterval: 0.18,
+      lastHit: { kb: 5.0, kbUp: 3.0, knockdown: true, hitstun: 0.55 },
+      limbs: ['fistL', 'fistR'], radius: 0.4, invuln: [0.02, 0.12],
+      fwdSpeed: 1.0, fwdWindow: [0.18, 0.56], chip: 0.12, sound: 'whoosh',
+      anim: [
+        [0, ST],
+        [0.16, { ...ST, tw: -0.2, sL: 1.5, eL: 0.15, sR: 1.5, eR: 0.15, sxL: 0.7, sxR: 0.7 }],
+        [0.35, { ...ST, tw: 1.3, sL: 1.5, eL: 0.15, sR: 1.5, eR: 0.15, sxL: 0.7, sxR: 0.7, ry: 2.2 }],
+        [0.6, { ...ST, tw: 1.3, sL: 1.5, eL: 0.15, sR: 1.5, eR: 0.15, sxL: 0.7, sxR: 0.7, ry: 5.0 }],
+        [1, { ...ST, ry: 6.28 }],
+      ],
+    },
+    skillD: {
+      name: '더블 니 프레스', startup: 0.2, active: 0.1, recovery: 0.42, isSkill: true, crouching: true,
+      damage: 55, level: 'low', hitstun: 0.5, blockstun: 0.26, kb: 2.5, knockdown: true,
+      limbs: ['footR'], radius: 0.32, fwdSpeed: 0.8, fwdWindow: [0, 0.28],
+      chip: 0.1, sound: 'whoosh',
+      anim: [
+        [0, CR],
+        [0.22, { ...CR, tw: -0.5, hR: -0.2, kR: -1.3 }],
+        [0.34, { ...CR, tl: 0.5, tw: 0.3, hR: 0.6, kR: -0.05 }],
+        [0.7, { ...CR, tl: 0.5, tw: 0.3, hR: 0.6, kR: -0.05 }],
+        [1, ST],
+      ],
+    },
+    superN: superArt('레드 사이클론', ['fistL', 'fistR'], [
+      [0, ST],
+      [0.18, { ...ST, tw: -0.3, sL: 1.4, eL: 0.2, sR: 1.4, eR: 0.2, sxL: 0.6, sxR: 0.6 }],
+      [0.3, { ...ST, tw: 1.5, sL: 1.4, eL: 0.2, sR: 1.4, eR: 0.2, sxL: 0.6, sxR: 0.6, ry: 2.5 }],
+      [0.45, { ...ST, tw: 1.5, sL: 1.4, eL: 0.2, sR: 1.4, eR: 0.2, sxL: 0.6, sxR: 0.6, ry: 6.0 }],
+      [0.6, { ...ST, tw: 1.5, sL: 1.4, eL: 0.2, sR: 1.4, eR: 0.2, sxL: 0.6, sxR: 0.6, ry: 10.5 }],
+      [0.76, { y: 0.1, tl: -0.3, tw: 0.4, sL: -0.6, eL: 0.8, sR: -0.8, eR: 0.5, hR: 2.4, kR: -0.1, hL: 0.9, kL: -1.6, ry: 11.5 }],
+      [1, { ...ST, ry: 12.5 }],
+    ], { damage: 46, fwdSpeed: 1.6 }),
+    ...wakeupMoves(),
+  },
+};
+
+// ============================================================
+// R. MIKA — grapple specialist: mobile suplex pressure
+// ============================================================
+const RMIKA = {
+  id: 'rmika',
+  displayName: 'R. MIKA',
+  nameKo: 'R. 미카',
+  health: 1020,
+  walkF: 2.35, walkB: 1.85,
+  jumpVy: 6.8,
+  rig: {
+    skin: 0xf2c9a0, top: 0xe83f8f, pants: 0xffffff, glove: 0xffffff,
+    hair: 0xe8c96a, accent: 0xffd93d, hairstyle: 'buns', sleeves: false,
+  },
+  moves: {
+    punch: {
+      name: '잽', startup: 0.08, active: 0.06, recovery: 0.17,
+      damage: 27, level: 'high', hitstun: 0.28, blockstun: 0.18, kb: 1.5,
+      limbs: ['fistL'], radius: RAD, cancelable: true, sound: 'whoosh',
+      anim: strike(0.08, 0.06, 0.17,
+        { ...ST, tw: -0.5, sL: 0.7, eL: 2.1 },
+        { y: -0.06, tl: 0.14, tw: 0.35, sL: 1.55, eL: 0.1, sR: 0.4, eR: 1.8, hL: 0.35, kL: -0.5, hR: -0.2, kR: -0.35 }),
+    },
+    kick: {
+      name: '드롭킥', startup: 0.15, active: 0.08, recovery: 0.3,
+      damage: 64, level: 'mid', hitstun: 0.38, blockstun: 0.24, kb: 3.6,
+      limbs: ['footR'], radius: 0.32, sound: 'whoosh',
+      anim: strike(0.15, 0.08, 0.3,
+        { ...ST, tl: 0.2, tw: -0.5, hR: -0.4, kR: -1.2 },
+        { y: -0.02, tl: -0.1, tw: 0.4, sL: 0.6, eL: 1.5, sR: -0.5, eR: 0.6, hR: 1.5, kR: -1.3, hL: 0.25, kL: -0.45 }),
+    },
+    cpunch: {
+      name: '앉아 잽', startup: 0.08, active: 0.05, recovery: 0.16, crouching: true,
+      damage: 22, level: 'sm', hitstun: 0.24, blockstun: 0.16, kb: 1.2,
+      limbs: ['fistL'], radius: 0.26, cancelable: true, sound: 'whoosh',
+      anim: strike(0.08, 0.05, 0.16, CR, { ...CR, tw: 0.2, sL: 1.35, eL: 0.1 }, CR),
+    },
+    ckick: {
+      name: '앉아 킥', startup: 0.14, active: 0.07, recovery: 0.3, crouching: true,
+      damage: 42, level: 'low', hitstun: 0.34, blockstun: 0.22, kb: 2.0,
+      limbs: ['footR'], radius: 0.3, sound: 'whoosh',
+      anim: strike(0.14, 0.07, 0.3, CR, { ...CR, tl: 0.4, hR: 0.55, kR: -0.05 }, CR),
+    },
+    jpunch: {
+      name: '점프 펀치', startup: 0.09, active: 0.3, recovery: 0.1, air: true,
+      damage: 52, level: 'mid', hitstun: 0.34, blockstun: 0.22, kb: 2.0,
+      limbs: ['fistR'], radius: 0.3, sound: 'whoosh',
+      anim: [[0, AIR], [0.25, { ...AIR, tl: 0.35, sR: 1.1, eR: 0.15 }], [1, { ...AIR, tl: 0.35, sR: 1.1, eR: 0.15 }]],
+    },
+    jkick: {
+      name: '점프 킥', startup: 0.11, active: 0.3, recovery: 0.1, air: true,
+      damage: 64, level: 'mid', hitstun: 0.4, blockstun: 0.26, kb: 2.8,
+      limbs: ['footR'], radius: 0.34, sound: 'whoosh',
+      anim: [[0, AIR], [0.3, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1, hL: 1.2, kL: -2.0 }], [1, { ...AIR, tl: 0.3, hR: 1.3, kR: -0.1 }]],
+    },
+    grab: throwMove({
+      name: '몽키 플립', startup: 0.13, active: 0.06, recovery: 0.48,
+      catchT: 0.13, liftT: 0.3, damage: 115, range: 1.05, kb: 5.5, kbUp: 4.2,
+    }),
+    // 커맨드 그랩: 미카의 시그니처 수플렉스.
+    skillN: throwMove({
+      name: '슈팅 피치 수플렉스', style: 'suplex', isCommandThrow: true,
+      startup: 0.19, active: 0.08, recovery: 0.5,
+      catchT: 0.16, liftT: 0.4, damage: 160, range: 1.15, kb: 1.0, knockdown: true,
+    }),
+    skillF: {
+      name: '러닝 바디 프레스', startup: 0.16, active: 0.14, recovery: 0.4, isSkill: true,
+      damage: 68, level: 'mid', hitstun: 0.42, blockstun: 0.26, kb: 3.4,
+      limbs: ['fistL', 'fistR'], radius: 0.4, fwdSpeed: 3.4, fwdWindow: [0, 0.3],
+      chip: 0.13, sound: 'whoosh', afterimage: true,
+      anim: [
+        [0, ST],
+        [0.14, { ...ST, tl: 0.3, sL: 0.2, eL: 0.5, sR: 0.2, eR: 0.5 }],
+        [0.34, { y: 0.02, tl: 0.15, tw: 0.1, sL: 1.4, eL: 0.2, sR: 1.4, eR: 0.2, hL: 0.5, kL: -0.6, hR: 0.4, kR: -0.5 }],
+        [0.6, { y: 0.02, tl: 0.15, tw: 0.1, sL: 1.4, eL: 0.2, sR: 1.4, eR: 0.2, hL: 0.5, kL: -0.6, hR: 0.4, kR: -0.5 }],
+        [1, ST],
+      ],
+    },
+    skillB: {
+      name: '피치 캔 캔', startup: 0.15, active: 0.36, recovery: 0.36, isSkill: true,
+      damage: 28, level: 'mid', hitstun: 0.24, blockstun: 0.17, kb: 1.0,
+      hits: 2, hitInterval: 0.16,
+      lastHit: { kb: 5.0, kbUp: 3.0, knockdown: true, hitstun: 0.55 },
+      limbs: ['footR', 'footL'], radius: 0.34, fwdSpeed: 2.2, fwdWindow: [0.15, 0.48],
+      chip: 0.1, sound: 'whoosh', afterimage: true,
+      anim: [
+        [0, ST],
+        [0.15, { ...ST, tl: -0.1, hR: 1.6, kR: -0.1, sxL: 0.4, sxR: 0.4, ry: 0.5 }],
+        [0.38, { ...ST, tl: -0.1, hL: 1.7, kL: -0.05, hR: -0.2, kR: -0.5, sxL: 0.4, sxR: 0.4, ry: 3.2 }],
+        [0.6, { ...ST, tl: -0.15, hL: 1.7, kL: 0, sxL: 0.4, sxR: 0.4, ry: 5.5 }],
+        [1, { ...ST, ry: 6.28 }],
+      ],
+    },
+    skillD: {
+      name: '로우 슬라이드', startup: 0.18, active: 0.11, recovery: 0.44, isSkill: true, crouching: true,
+      damage: 58, level: 'low', hitstun: 0.55, blockstun: 0.26, kb: 3.0, knockdown: true,
+      limbs: ['footR'], radius: 0.34, fwdSpeed: 3.0, fwdWindow: [0.05, 0.3],
+      chip: 0.1, sound: 'whoosh',
+      anim: [
+        [0, { ...ST, y: -0.2 }],
+        [0.2, { ...CR, tl: 0.2, rz: 0.5, hR: 0.8, kR: 0, hL: 1.2, kL: -2.0 }],
+        [0.46, { ...CR, tl: 0.2, rz: 0.6, hR: 0.85, kR: 0, hL: 1.2, kL: -2.0 }],
+        [0.8, CR],
+        [1, ST],
+      ],
+    },
+    superN: superArt('미카 익스프레스', ['fistL', 'footR'], [
+      [0, ST],
+      [0.18, { ...ST, y: -0.15, tl: 0.2, tw: -0.6, sL: -0.5, eL: 1.2 }],
+      [0.3, { y: -0.08, tl: 0.2, tw: 0.35, sL: 1.55, eL: 0.1, sR: 0.3, eR: 1.7, hL: 0.4, kL: -0.6 }],
+      [0.42, { y: -0.05, tl: -0.1, tw: 0.4, sL: 0.6, eL: 1.5, hR: 1.7, kR: -0.08, sxR: 0.4 }],
+      [0.54, { y: -0.08, tl: 0.25, tw: -0.2, sR: 1.6, eR: 0.05, sL: 0.4, eL: 1.6 }],
+      [0.64, { y: -0.05, tl: -0.15, tw: 0.4, hR: 1.85, kR: 0, sxL: 0.4, sxR: 0.4 }],
+      [0.76, { y: -0.15, tl: -0.3, tw: 1.0, sL: 2.2, eL: 0.3, sR: 0.5, eR: 0.9, hL: 0.5, kL: -0.7 }],
+      [1, ST],
+    ], { damage: 44 }),
+    ...wakeupMoves(),
+  },
+};
+
+const CHARACTERS = {
+  chunli: CHUNLI, nina: NINA, cammy: CAMMY, asuka: ASUKA, zangief: ZANGIEF, rmika: RMIKA,
+};
 
 // ===== src/fx.js =====
 // Hit feel toolkit: hitstop, screenshake, spark particles, dust, afterimages, KO slow-mo.
@@ -1711,11 +2066,25 @@ const UI = {
       result: $('result'),
       resultText: $('resultText'),
       pause: $('pauseOverlay'),
+      practiceStatus: $('practiceStatus'),
+      practicePanel: $('practicePanel'),
     };
     this.moveNameT = [0, 0];
   },
 
   showHud(on) { this.els.hud.classList.toggle('on', on); },
+  setPracticeMode(on) { this.els.hud.classList.toggle('practice', on); },
+
+  setPracticeStatus(dummyMode, gaugeMax) {
+    const dummyLabel = { stand: '대기', guard: '가드', crouchguard: '앉아가드', cpu: 'CPU' }[dummyMode] || dummyMode;
+    this.els.practiceStatus.innerHTML =
+      `더미: <b>${dummyLabel}</b> (Tab 전환) &nbsp;|&nbsp; 게이지 MAX: <b>${gaugeMax ? 'ON' : 'OFF'}</b> (G) &nbsp;|&nbsp; R 위치·체력 초기화 &nbsp;|&nbsp; M 기술표`;
+  },
+
+  setPracticePanel(html, on) {
+    this.els.practicePanel.innerHTML = html;
+    this.els.practicePanel.classList.toggle('on', on);
+  },
   showTitle(on) { this.els.title.classList.toggle('on', on); },
   showResult(on, text) {
     this.els.result.classList.toggle('on', on);
@@ -1982,6 +2351,10 @@ class AI {
 // ===== src/fighter.js =====
 
 
+
+const DASH_TAP_WINDOW = 0.28; // max seconds between taps to count as a double-tap
+const DASH_COOLDOWN = 0.45;
+
 const GRAV = 21;
 
 let uid = 0;
@@ -2026,6 +2399,13 @@ class Fighter {
     this.koFalling = false;
     this.inputLocked = false;
     this.landLagT = 0;
+    this.throwClip = null;
+    this.throwT = 0;
+    this.throwDur = 0;
+    this.dashTapT = { left: 999, right: 999 };
+    this.prevDirHeld = { left: false, right: false };
+    this.dashCooldown = 0;
+    this.dashForward = true;
   }
 
   get grounded() { return this.pos.y <= 0.001 && this.vy <= 0; }
@@ -2060,6 +2440,7 @@ class Fighter {
   isInvulnerable() {
     if (this.state === 'knockdown' || this.state === 'getup' || this.state === 'roll' ||
         this.state === 'thrown' || this.state === 'ko' || this.state === 'win' || this.state === 'intro') return true;
+    if (this.state === 'dash' && this.dashInvuln) return true;
     if (this.state === 'attack' && this.move?.invuln) {
       const [a, b] = this.move.invuln;
       if (this.moveT >= a && this.moveT <= b) return true;
@@ -2143,11 +2524,46 @@ class Fighter {
 
   moveDuration(move) { return move.startup + move.active + move.recovery; }
 
+  // forward/backward dash: two quick taps of the same direction key
+  startDash(isForward, game) {
+    this.state = 'dash';
+    this.stateT = 0;
+    this.dashForward = isForward;
+    this.dashCooldown = DASH_COOLDOWN;
+    this.dashInvuln = false;
+    game.fx.dust(this.pos.x, 0.05, 6);
+    Sound.whoosh();
+  }
+
+  checkDashInput(dt, game) {
+    const c = this.ctrl;
+    this.dashTapT.left += dt;
+    this.dashTapT.right += dt;
+    this.dashCooldown = Math.max(0, this.dashCooldown - dt);
+
+    const heldL = c.held('left'), heldR = c.held('right');
+    const edgeL = heldL && !this.prevDirHeld.left;
+    const edgeR = heldR && !this.prevDirHeld.right;
+    this.prevDirHeld.left = heldL;
+    this.prevDirHeld.right = heldR;
+    if (!edgeL && !edgeR) return;
+
+    const dir = edgeL ? 'left' : 'right';
+    const canDash = this.canAct() && this.grounded && this.dashCooldown <= 0 && !this.inputLocked;
+    if (canDash && this.dashTapT[dir] < DASH_TAP_WINDOW) {
+      const worldDir = dir === 'left' ? -1 : 1;
+      this.startDash(worldDir === this.facing, game);
+    }
+    this.dashTapT[dir] = 0;
+  }
+
   // ---------- per-frame update ----------
   update(dt, game) {
     this.stateT += dt;
     this.flash = Math.max(0, this.flash - dt * 6);
     const c = this.ctrl;
+
+    this.checkDashInput(dt, game);
 
     switch (this.state) {
       case 'intro':
@@ -2183,6 +2599,27 @@ class Fighter {
         this.vx = 0;
         if (!c.held('down')) { this.state = 'idle'; this.stateT = 0; break; }
         if (!this.inputLocked) this.tryStartMoves();
+        break;
+      }
+
+      case 'dash': {
+        const dur = this.dashForward ? 0.26 : 0.24;
+        this.dashInvuln = !this.dashForward && this.stateT < 0.12;
+        const speed = this.dashForward ? this.char.walkF * 2.5 : this.char.walkB * 2.3;
+        const u = Math.min(1, this.stateT / dur);
+        const speedMul = u < 0.55 ? 1 : Math.max(0, 1 - (u - 0.55) / 0.45);
+        this.vx = this.facing * (this.dashForward ? 1 : -1) * speed * speedMul;
+        // late-dash cancel: let an attack button interrupt the tail of the dash
+        if (!this.inputLocked && u > 0.65 &&
+            (c.pressed('punch') || c.pressed('kick') || c.pressed('skill') || c.pressed('grab'))) {
+          this.state = 'idle'; this.stateT = 0;
+          this.tryStartMoves();
+          break;
+        }
+        if (this.stateT >= dur) {
+          this.state = c.held('down') ? 'crouch' : 'idle';
+          this.stateT = 0;
+        }
         break;
       }
 
@@ -2429,7 +2866,8 @@ class Fighter {
 
   applyHit(atk, dir, opts = {}) {
     const dmg = opts.damage ?? atk.damage;
-    this.health = Math.max(0, this.health - dmg);
+    const floor = this.gameRef?.practiceMode ? 1 : 0;
+    this.health = Math.max(floor, this.health - dmg);
     this.lastHitLevel = atk.level;
     this.flash = 1;
     const dead = this.health <= 0;
@@ -2489,6 +2927,18 @@ class Fighter {
         break;
       }
       case 'crouch': pose = CR; break;
+      case 'dash': {
+        const dur = this.dashForward ? 0.26 : 0.24;
+        const u = Math.min(1, t / dur);
+        const lean = this.dashForward ? 0.4 : -0.32;
+        const fold = 1 - Math.max(0, u - 0.55) / 0.45 * 0.6;
+        pose = {
+          ...ST, y: ST.y - 0.06, tl: ST.tl + lean * fold,
+          hL: 0.65 * fold, kL: -0.25 - 0.3 * fold, hR: 0.55 * fold, kR: -0.25 - 0.3 * fold,
+          sL: ST.sL - (this.dashForward ? 0.25 : -0.2) * fold, sR: ST.sR + (this.dashForward ? 0.25 : -0.2) * fold,
+        };
+        break;
+      }
       case 'prejump': pose = { ...ST, y: -0.22, tl: 0.25, kL: -0.9, kR: -0.8, hL: 0.5, hR: 0.3 }; break;
       case 'air': {
         const k = Math.max(-0.3, Math.min(0.3, -this.vy * 0.04));
@@ -2532,7 +2982,15 @@ class Fighter {
       }
       case 'getup': pose = lerpPose(KD, ST, Math.min(1, t / 0.35)); break;
       case 'wallsplat': pose = WALLSPLAT; break;
-      case 'thrown': pose = { ...HIT_M, y: this.pos.y > 0.05 ? 0 : HIT_M.y }; break;
+      case 'thrown': {
+        if (this.throwClip) {
+          const u = this.throwDur > 0 ? Math.min(1, this.throwT / this.throwDur) : 1;
+          pose = sampleClip(this.throwClip, u);
+        } else {
+          pose = HIT_M;
+        }
+        break;
+      }
       case 'win': {
         const b = Math.sin(t * 3) * 0.03;
         pose = { ...WIN, y: b };
@@ -2561,11 +3019,12 @@ class Fighter {
 
 
 
+
 const ROUND_TIME = 60;
 const ROUNDS_TO_WIN = 2;
 
 class Game {
-  constructor(scene, fx, charA, charB, ctrlA, ctrlB) {
+  constructor(scene, fx, charA, charB, ctrlA, ctrlB, opts = {}) {
     this.scene = scene;
     this.fx = fx;
     this.fighters = [
@@ -2584,12 +3043,18 @@ class Game {
     this.projectiles = [];
     this.combo = [{ hits: 0, dmg: 0 }, { hits: 0, dmg: 0 }];
     this.roundWins = [0, 0];
-    this.phase = 'roundIntro'; // roundIntro | fight | koSlow | roundEnd | matchEnd
+    this.phase = 'roundIntro'; // roundIntro | fight | koSlow | roundEnd | matchEnd | practice
     this.phaseT = 0;
     this.round = 1;
     this.timer = ROUND_TIME;
     this.onMatchEnd = null;
-    this.startRound();
+
+    this.practiceMode = !!opts.practice;
+    this.dummyMode = 'stand'; // stand | guard | crouchguard | cpu
+    this.dummyAI = null;
+    this.forceGaugeMax = false;
+
+    if (this.practiceMode) this.startPractice(); else this.startRound();
   }
 
   startRound() {
@@ -2611,7 +3076,82 @@ class Game {
   }
 
   // ------------------------------------------------------------------
+  // Practice mode: free play, no KO/round flow, togglable dummy behavior + gauge.
+  startPractice() {
+    for (const p of this.projectiles) this.scene.remove(p.mesh);
+    this.projectiles = [];
+    const [a, b] = this.fighters;
+    a.reset(-1.6, 1);
+    b.reset(1.6, -1);
+    a.inputLocked = b.inputLocked = false;
+    this.phase = 'practice';
+    this.phaseT = 0;
+    this.combo = [{ hits: 0, dmg: 0 }, { hits: 0, dmg: 0 }];
+    UI.resetBars();
+  }
+
+  resetPracticePositions() {
+    const [a, b] = this.fighters;
+    const keepA = a.meter, keepB = b.meter;
+    a.reset(-1.6, 1);
+    b.reset(1.6, -1);
+    a.meter = this.forceGaugeMax ? 100 : keepA;
+    b.meter = this.forceGaugeMax ? 100 : keepB;
+    this.combo = [{ hits: 0, dmg: 0 }, { hits: 0, dmg: 0 }];
+  }
+
+  cycleDummyMode() {
+    const order = ['stand', 'guard', 'crouchguard', 'cpu'];
+    this.dummyMode = order[(order.indexOf(this.dummyMode) + 1) % order.length];
+    if (this.dummyMode === 'cpu' && !this.dummyAI) {
+      this.dummyAI = new AI(this.fighters[1], this.fighters[0]);
+    }
+    return this.dummyMode;
+  }
+
+  applyDummyBehavior(dt) {
+    const dummy = this.fighters[1];
+    const c = dummy.ctrl;
+    if (!c.clearHolds) return; // not a virtual controller — skip (human P2)
+    if (this.dummyMode === 'cpu') {
+      this.dummyAI?.update(dt);
+      return;
+    }
+    c.clearHolds();
+    if (this.dummyMode === 'guard') {
+      c.hold(dummy.facing > 0 ? 'left' : 'right');
+    } else if (this.dummyMode === 'crouchguard') {
+      c.hold(dummy.facing > 0 ? 'left' : 'right');
+      c.hold('down');
+    }
+  }
+
+  updatePracticeStep(dt) {
+    const [a, b] = this.fighters;
+    for (const f of this.fighters) {
+      if (f.canAct() && f.grounded) f.facing = f.opponent.pos.x >= f.pos.x ? 1 : -1;
+    }
+    if (this.forceGaugeMax) { a.meter = 100; b.meter = 100; }
+    this.applyDummyBehavior(dt);
+
+    a.update(dt, this);
+    b.update(dt, this);
+
+    this.updateThrows(dt);
+    this.resolveBodyPush(a, b);
+    this.applyWalls(a);
+    this.applyWalls(b);
+    this.updateProjectiles(dt);
+
+    for (let i = 0; i < 2; i++) {
+      const victim = this.fighters[1 - i];
+      if (this.combo[i].hits > 0 && !this.isComboState(victim)) this.combo[i] = { hits: 0, dmg: 0 };
+    }
+  }
+
+  // ------------------------------------------------------------------
   update(dt) {
+    if (this.practiceMode) { this.updatePracticeStep(dt); return; }
     this.phaseT += dt;
 
     switch (this.phase) {
@@ -2912,6 +3452,12 @@ class Game {
   }
 
   // ------------------------------------------------------------------
+  // Throws run in two clearly separated stages so nothing ever looks skipped:
+  //  1. catch+execute (throwCatch+throwLift): both fighters locked into a shared,
+  //     fully-keyframed clip (see moves.js hipTossThrow/suplexThrow/piledriverThrow).
+  //  2. impact: victim hands off to the normal hit/knockdown reaction.
+  // The attacker's own move is swapped for a scripted "follow-through" so its pose
+  // timeline (attackerAnim) is driven independently of the whiffable reach-in clip.
   tryThrow(attacker, mv) {
     const victim = attacker.opponent;
     if (victim.isInvulnerable() || victim.airborne) return;
@@ -2919,49 +3465,66 @@ class Game {
     const dist = Math.abs(victim.pos.x - attacker.pos.x);
     if (dist > mv.range) return;
 
+    const dir = attacker.facing;
+    const ai = this.fighters.indexOf(attacker);
+    const catchT = mv.throwCatch ?? 0.14;
+    const liftT = mv.throwLift ?? 0.3;
+    const holdDur = catchT + liftT;
+
     victim.state = 'thrown';
     victim.stateT = 0;
     victim.move = null;
-    attacker.moveConnected = true; // attacker stays in 'attack'; anim continues
-    Sound.beep();
+    victim.pos.y = 0;
+    victim.facing = -dir;
+    victim.throwClip = mv.victimAnim || null;
+    victim.throwT = 0;
+    victim.throwDur = holdDur;
 
-    const dir = attacker.facing;
-    const ai = this.fighters.indexOf(attacker);
-    // release after throwDur: damage + launch
+    // attacker: swap into a scripted, non-hitting follow-through so its own pose
+    // timeline is decoupled from the (already-finished) whiffable reach clip.
+    attacker.startMove({
+      name: mv.name, anim: mv.attackerAnim || mv.anim, limbs: [], radius: 0,
+      startup: 0, active: 0, recovery: holdDur + (mv.recovery ?? 0.4),
+    });
+    attacker.moveConnected = true;
+
+    Sound.beep();
+    this.fx.hitstop(0.05); // sell the catch
+    this.fx.spark(victim.pos.x, victim.pos.y + 1.0, 0xffe27a, 8, 2);
+
     const release = () => {
       if (victim.state !== 'thrown') return;
+      victim.throwClip = null;
       const contact = { x: victim.pos.x, y: victim.pos.y + 1.1 };
-      victim.applyHit({ damage: mv.damage, level: 'mid', kb: mv.kb, kbUp: mv.kbUp, hitstun: 0.5 }, dir, {});
+      victim.applyHit({ damage: mv.damage, level: 'mid', kb: mv.kb, kbUp: mv.kbUp, hitstun: 0.5, knockdown: mv.knockdown }, dir, {});
       attacker.addMeter(8);
       victim.addMeter(mv.damage * 0.045);
       this.combo[ai] = { hits: 1, dmg: mv.damage };
-      this.fx.spark(contact.x, contact.y, 0xffcf6e, 16, 5);
-      this.fx.hitstop(0.09);
-      this.fx.shake(0.3);
+      this.fx.spark(contact.x, contact.y, 0xffcf6e, 18, 5.5);
+      this.fx.ring(contact.x, contact.y, 0xffe08a);
+      this.fx.hitstop(mv.isCommandThrow ? 0.16 : 0.09);
+      this.fx.shake(mv.isCommandThrow ? 0.42 : 0.3);
       Sound.slam();
       this.spawnDamageNumber(contact, mv.damage, false);
       if (victim.health <= 0 && this.phase === 'fight') this.ko(victim);
     };
-    victim.throwRelease = release;
-    attacker.throwTimer = mv.throwDur;
-    attacker.throwVictim = victim;
 
-    // schedule via game loop: store on attacker, handled in updateThrows
-    this.activeThrow = { attacker, victim, t: 0, dur: mv.throwDur, release, dir };
+    this.activeThrow = { attacker, victim, t: 0, dur: holdDur, release, dir, fired: false };
   }
 
   updateThrows(dt) {
     const th = this.activeThrow;
     if (!th) return;
     th.t += dt;
-    // drag victim in front of attacker, slight lift
     const { attacker, victim } = th;
     if (victim.state === 'thrown') {
+      victim.throwT = Math.min(th.t, th.dur);
       victim.pos.x = attacker.pos.x + th.dir * 0.55;
-      victim.pos.y = Math.sin(Math.min(1, th.t / th.dur) * Math.PI) * 0.5;
+      victim.pos.y = 0;
       victim.facing = -th.dir;
     }
-    if (th.t >= th.dur) {
+    if (th.t >= th.dur && !th.fired) {
+      th.fired = true;
       th.release();
       this.activeThrow = null;
     }
@@ -3145,17 +3708,20 @@ const fx = new FX(scene);
 UI.init();
 
 // ---------------- app state ----------------
-const CHAR_IDS = ['chunli', 'nina', 'cammy', 'asuka'];
+const CHAR_IDS = ['chunli', 'nina', 'cammy', 'asuka', 'zangief', 'rmika'];
 let mode = 'title'; // title | charselect | fight | result
 let game = null;
 let ai = null;
 let paused = false;
+let pauseIndex = 0;
 
 let menuIndex = 0;
 const menuOpts = [...document.querySelectorAll('.menuOpt')];
 const csCards = [...document.querySelectorAll('.csCard')];
 const csTitle = document.getElementById('csTitle');
 const charselectEl = document.getElementById('charselect');
+const pauseOpts = [...document.querySelectorAll('.pauseOpt')];
+const pauseRestartOpt = document.getElementById('pauseRestartOpt');
 
 const sel = { mode: 'cpu', phase: 'p1', p1: 0, p2: 1 };
 
@@ -3164,6 +3730,11 @@ function setMenuSel(i) {
   menuOpts.forEach((el, k) => el.classList.toggle('sel', k === menuIndex));
 }
 setMenuSel(0);
+
+function setPauseSel(i) {
+  pauseIndex = (i + pauseOpts.length) % pauseOpts.length;
+  pauseOpts.forEach((el, k) => el.classList.toggle('sel', k === pauseIndex));
+}
 
 function showCharSelect(vsMode) {
   sel.mode = vsMode;
@@ -3186,8 +3757,9 @@ function renderCsCursor() {
 
 function csMove(who, delta) {
   Sound.beep();
-  if (who === 'p1') sel.p1 = (sel.p1 + delta + 4) % 4;
-  else sel.p2 = (sel.p2 + delta + 4) % 4;
+  const n = CHAR_IDS.length;
+  if (who === 'p1') sel.p1 = (sel.p1 + delta + n) % n;
+  else sel.p2 = (sel.p2 + delta + n) % n;
   renderCsCursor();
 }
 
@@ -3197,30 +3769,33 @@ function csConfirm() {
     if (sel.mode === 'cpu') {
       sel.phase = 'cpu';
       csTitle.textContent = 'CPU 상대 결정 중...';
-      sel.p2 = Math.floor(Math.random() * 4);
+      sel.p2 = Math.floor(Math.random() * CHAR_IDS.length);
       renderCsCursor();
       setTimeout(() => { if (mode === 'charselect') startFight(); }, 550);
     } else {
       sel.phase = 'p2';
-      csTitle.textContent = 'P2 — 캐릭터 선택';
+      csTitle.textContent = sel.mode === 'practice' ? '더미 — 캐릭터 선택' : 'P2 — 캐릭터 선택';
       renderCsCursor();
     }
   } else if (sel.phase === 'p2') {
-    startFight();
+    if (sel.mode === 'practice') startPractice(); else startFight();
   }
+}
+
+function moveListHtml(fighter, label) {
+  const moveKeys = [['skillN', '스킬'], ['skillF', '앞+스킬'], ['skillB', '뒤+스킬'], ['skillD', '↓+스킬'], ['superN', '슈퍼']];
+  const rows = moveKeys
+    .map(([k, lab]) => fighter.char.moves[k] ? `${fighter.char.moves[k].name} <span style="color:#8a7fb0">— ${lab}</span>` : '')
+    .filter(Boolean).join('<br>');
+  return `<b>${label} — ${fighter.char.displayName} (${fighter.char.nameKo})</b>${rows}`;
 }
 
 function fillPauseTable() {
   const [a, b] = game.fighters;
-  const label = ['PLAYER 1', sel.mode === 'cpu' ? 'CPU' : 'PLAYER 2'];
-  const moveKeys = [['skillN', '스킬'], ['skillF', '앞+스킬'], ['skillB', '뒤+스킬'], ['skillD', '↓+스킬'], ['superN', '슈퍼']];
-  [a, b].forEach((f, i) => {
-    const el = document.getElementById(i === 0 ? 'pauseP1' : 'pauseP2');
-    const rows = moveKeys
-      .map(([k, lab]) => f.char.moves[k] ? `${f.char.moves[k].name} <span style="color:#8a7fb0">— ${lab}</span>` : '')
-      .filter(Boolean).join('<br>');
-    el.innerHTML = `<b>${label[i]} — ${f.char.displayName} (${f.char.nameKo})</b>${rows}`;
-  });
+  const labelB = sel.mode === 'cpu' ? 'CPU' : sel.mode === 'practice' ? '더미' : 'PLAYER 2';
+  document.getElementById('pauseP1').innerHTML = moveListHtml(a, 'PLAYER 1');
+  document.getElementById('pauseP2').innerHTML = moveListHtml(b, labelB);
+  pauseRestartOpt.textContent = game.practiceMode ? '위치 · 체력 초기화' : '라운드 재시작';
 }
 
 function startFight() {
@@ -3238,9 +3813,31 @@ function startFight() {
     mode = 'result';
     UI.showResult(true, `${champ.char.displayName} WINS!`);
   };
+  UI.setPracticeMode(false);
   UI.setNames(charA.displayName, charB.displayName + (sel.mode === 'cpu' ? ' (CPU)' : ''));
   UI.showResult(false);
   UI.showHud(true);
+  fillPauseTable();
+  mode = 'fight';
+}
+
+function startPractice() {
+  if (game) game.dispose();
+  charselectEl.classList.remove('on');
+  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0));
+  const dummyCtrl = new VirtualController();
+  const charA = CHARACTERS[CHAR_IDS[sel.p1]];
+  const charB = CHARACTERS[CHAR_IDS[sel.p2]];
+  game = new Game(scene, fx, charA, charB, p1, dummyCtrl, { practice: true });
+  game.camera = camera;
+  window.__game = game;
+  ai = null; // dummy AI (if enabled) is driven internally by Game in practice mode
+  UI.setPracticeMode(true);
+  UI.setNames(charA.displayName, charB.displayName + ' (더미)');
+  UI.showResult(false);
+  UI.showHud(true);
+  UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+  UI.setPracticePanel(moveListHtml(game.fighters[0], 'PLAYER 1'), false);
   fillPauseTable();
   mode = 'fight';
 }
@@ -3252,9 +3849,34 @@ function backToTitle() {
   UI.showHud(false);
   UI.showResult(false);
   UI.showPause(false);
+  UI.setPracticeMode(false);
   charselectEl.classList.remove('on');
   UI.showTitle(true);
   mode = 'title';
+}
+
+function openPause() {
+  paused = true;
+  setPauseSel(0);
+  UI.showPause(true);
+}
+
+function runPauseAction(act) {
+  if (act === 'resume') {
+    paused = false;
+    UI.showPause(false);
+  } else if (act === 'restart') {
+    if (game.practiceMode) {
+      game.resetPracticePositions();
+      UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+    } else {
+      startFight();
+    }
+    paused = false;
+    UI.showPause(false);
+  } else if (act === 'exit') {
+    backToTitle();
+  }
 }
 
 window.addEventListener('keydown', (e) => {
@@ -3264,21 +3886,45 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowDown' || e.code === 'KeyS') { setMenuSel(menuIndex + 1); Sound.beep(); }
     if (e.code === 'Digit1') showCharSelect('cpu');
     else if (e.code === 'Digit2') showCharSelect('2p');
+    else if (e.code === 'Digit3') showCharSelect('practice');
     else if (e.code === 'Enter' || e.code === 'Space') showCharSelect(menuOpts[menuIndex].dataset.mode);
   } else if (mode === 'charselect') {
     const p1Turn = sel.phase === 'p1';
+    const soloTurn = sel.mode !== '2p'; // cpu/practice: P1 controls both picks
     if (['KeyA', 'ArrowLeft'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', -1);
     else if (['KeyD', 'ArrowRight'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', 1);
     else if (p1Turn && ['Enter', 'KeyJ', 'Space'].includes(e.code)) csConfirm();
-    else if (!p1Turn && sel.phase === 'p2' && ['Enter', 'Numpad1', 'KeyN'].includes(e.code)) csConfirm();
+    else if (!p1Turn && sel.phase === 'p2' &&
+      (['Enter', 'Numpad1', 'KeyN'].includes(e.code) || (soloTurn && ['KeyJ', 'Space'].includes(e.code)))) csConfirm();
     else if (e.code === 'Escape') backToTitle();
   } else if (mode === 'fight') {
-    if (e.code === 'KeyP') {
-      paused = !paused;
-      UI.showPause(paused);
-    } else if (e.code === 'Escape') {
-      if (paused) backToTitle();
-      else { paused = true; UI.showPause(true); }
+    if (paused) {
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') { setPauseSel(pauseIndex - 1); Sound.beep(); }
+      else if (e.code === 'ArrowDown' || e.code === 'KeyS') { setPauseSel(pauseIndex + 1); Sound.beep(); }
+      else if (e.code === 'Enter' || e.code === 'Space') runPauseAction(pauseOpts[pauseIndex].dataset.act);
+      else if (e.code === 'KeyP') { paused = false; UI.showPause(false); }
+      else if (e.code === 'Escape') { paused = false; UI.showPause(false); }
+      return;
+    }
+    if (e.code === 'KeyP') openPause();
+    else if (e.code === 'Escape') openPause();
+    else if (game?.practiceMode) {
+      if (e.code === 'KeyR') {
+        game.resetPracticePositions();
+        UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+      } else if (e.code === 'KeyG') {
+        game.forceGaugeMax = !game.forceGaugeMax;
+        if (game.forceGaugeMax) { game.fighters[0].meter = 100; game.fighters[1].meter = 100; }
+        UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+      } else if (e.code === 'Tab') {
+        e.preventDefault();
+        const m = game.cycleDummyMode();
+        UI.setPracticeStatus(m, game.forceGaugeMax);
+        Sound.beep();
+      } else if (e.code === 'KeyM') {
+        const on = !document.getElementById('practicePanel').classList.contains('on');
+        UI.setPracticePanel(moveListHtml(game.fighters[0], 'PLAYER 1'), on);
+      }
     }
   } else if (mode === 'result') {
     if (e.code === 'Enter') showCharSelect(sel.mode);
@@ -3298,6 +3944,11 @@ csCards.forEach((el, i) => {
     if (sel.phase === 'p1') { sel.p1 = i; renderCsCursor(); csConfirm(); }
     else if (sel.phase === 'p2') { sel.p2 = i; renderCsCursor(); csConfirm(); }
   });
+});
+pauseOpts.forEach((el, i) => {
+  el.style.pointerEvents = 'auto';
+  el.addEventListener('mouseenter', () => setPauseSel(i));
+  el.addEventListener('click', () => runPauseAction(el.dataset.act));
 });
 
 // gamepad navigation in menus
@@ -3319,6 +3970,10 @@ function padMenus() {
       if (e.right) csMove('p2', 1);
       if (e.confirm) csConfirm();
     }
+  } else if (mode === 'fight' && paused) {
+    if (e0.up) { setPauseSel(pauseIndex - 1); Sound.beep(); }
+    if (e0.down) { setPauseSel(pauseIndex + 1); Sound.beep(); }
+    if (e0.confirm) runPauseAction(pauseOpts[pauseIndex].dataset.act);
   } else if (mode === 'result') {
     if (e0.confirm) showCharSelect(sel.mode);
   }
@@ -3376,6 +4031,8 @@ function frame(now) {
     }
     fx.update(dt, camera);
     if (game) UI.update(dt, game.fighters);
+  } else {
+    padMenus();
   }
 
   updateCamera(paused ? 0 : dt);

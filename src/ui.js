@@ -25,11 +25,25 @@ export const UI = {
       result: $('result'),
       resultText: $('resultText'),
       pause: $('pauseOverlay'),
+      practiceStatus: $('practiceStatus'),
+      practicePanel: $('practicePanel'),
     };
     this.moveNameT = [0, 0];
   },
 
   showHud(on) { this.els.hud.classList.toggle('on', on); },
+  setPracticeMode(on) { this.els.hud.classList.toggle('practice', on); },
+
+  setPracticeStatus(dummyMode, gaugeMax) {
+    const dummyLabel = { stand: '대기', guard: '가드', crouchguard: '앉아가드', cpu: 'CPU' }[dummyMode] || dummyMode;
+    this.els.practiceStatus.innerHTML =
+      `더미: <b>${dummyLabel}</b> (Tab 전환) &nbsp;|&nbsp; 게이지 MAX: <b>${gaugeMax ? 'ON' : 'OFF'}</b> (G) &nbsp;|&nbsp; R 위치·체력 초기화 &nbsp;|&nbsp; M 기술표`;
+  },
+
+  setPracticePanel(html, on) {
+    this.els.practicePanel.innerHTML = html;
+    this.els.practicePanel.classList.toggle('on', on);
+  },
   showTitle(on) { this.els.title.classList.toggle('on', on); },
   showResult(on, text) {
     this.els.result.classList.toggle('on', on);

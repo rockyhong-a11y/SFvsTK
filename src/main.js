@@ -8,7 +8,7 @@ import { AI } from './ai.js';
 import { UI } from './ui.js';
 import { Sound } from './audio.js';
 import {
-  KeyboardController, PadController, CompositeController,
+  KeyboardController, PadController, CompositeController, VirtualController,
   P1_KEYS, P2_KEYS, tickInputClock, pollGamepads, padMenuEdges,
 } from './input.js';
 
@@ -37,17 +37,20 @@ const fx = new FX(scene);
 UI.init();
 
 // ---------------- app state ----------------
-const CHAR_IDS = ['chunli', 'nina', 'cammy', 'asuka'];
+const CHAR_IDS = ['chunli', 'nina', 'cammy', 'asuka', 'zangief', 'rmika'];
 let mode = 'title'; // title | charselect | fight | result
 let game = null;
 let ai = null;
 let paused = false;
+let pauseIndex = 0;
 
 let menuIndex = 0;
 const menuOpts = [...document.querySelectorAll('.menuOpt')];
 const csCards = [...document.querySelectorAll('.csCard')];
 const csTitle = document.getElementById('csTitle');
 const charselectEl = document.getElementById('charselect');
+const pauseOpts = [...document.querySelectorAll('.pauseOpt')];
+const pauseRestartOpt = document.getElementById('pauseRestartOpt');
 
 const sel = { mode: 'cpu', phase: 'p1', p1: 0, p2: 1 };
 
@@ -56,6 +59,11 @@ function setMenuSel(i) {
   menuOpts.forEach((el, k) => el.classList.toggle('sel', k === menuIndex));
 }
 setMenuSel(0);
+
+function setPauseSel(i) {
+  pauseIndex = (i + pauseOpts.length) % pauseOpts.length;
+  pauseOpts.forEach((el, k) => el.classList.toggle('sel', k === pauseIndex));
+}
 
 function showCharSelect(vsMode) {
   sel.mode = vsMode;
@@ -78,8 +86,9 @@ function renderCsCursor() {
 
 function csMove(who, delta) {
   Sound.beep();
-  if (who === 'p1') sel.p1 = (sel.p1 + delta + 4) % 4;
-  else sel.p2 = (sel.p2 + delta + 4) % 4;
+  const n = CHAR_IDS.length;
+  if (who === 'p1') sel.p1 = (sel.p1 + delta + n) % n;
+  else sel.p2 = (sel.p2 + delta + n) % n;
   renderCsCursor();
 }
 
@@ -89,30 +98,33 @@ function csConfirm() {
     if (sel.mode === 'cpu') {
       sel.phase = 'cpu';
       csTitle.textContent = 'CPU 상대 결정 중...';
-      sel.p2 = Math.floor(Math.random() * 4);
+      sel.p2 = Math.floor(Math.random() * CHAR_IDS.length);
       renderCsCursor();
       setTimeout(() => { if (mode === 'charselect') startFight(); }, 550);
     } else {
       sel.phase = 'p2';
-      csTitle.textContent = 'P2 — 캐릭터 선택';
+      csTitle.textContent = sel.mode === 'practice' ? '더미 — 캐릭터 선택' : 'P2 — 캐릭터 선택';
       renderCsCursor();
     }
   } else if (sel.phase === 'p2') {
-    startFight();
+    if (sel.mode === 'practice') startPractice(); else startFight();
   }
+}
+
+function moveListHtml(fighter, label) {
+  const moveKeys = [['skillN', '스킬'], ['skillF', '앞+스킬'], ['skillB', '뒤+스킬'], ['skillD', '↓+스킬'], ['superN', '슈퍼']];
+  const rows = moveKeys
+    .map(([k, lab]) => fighter.char.moves[k] ? `${fighter.char.moves[k].name} <span style="color:#8a7fb0">— ${lab}</span>` : '')
+    .filter(Boolean).join('<br>');
+  return `<b>${label} — ${fighter.char.displayName} (${fighter.char.nameKo})</b>${rows}`;
 }
 
 function fillPauseTable() {
   const [a, b] = game.fighters;
-  const label = ['PLAYER 1', sel.mode === 'cpu' ? 'CPU' : 'PLAYER 2'];
-  const moveKeys = [['skillN', '스킬'], ['skillF', '앞+스킬'], ['skillB', '뒤+스킬'], ['skillD', '↓+스킬'], ['superN', '슈퍼']];
-  [a, b].forEach((f, i) => {
-    const el = document.getElementById(i === 0 ? 'pauseP1' : 'pauseP2');
-    const rows = moveKeys
-      .map(([k, lab]) => f.char.moves[k] ? `${f.char.moves[k].name} <span style="color:#8a7fb0">— ${lab}</span>` : '')
-      .filter(Boolean).join('<br>');
-    el.innerHTML = `<b>${label[i]} — ${f.char.displayName} (${f.char.nameKo})</b>${rows}`;
-  });
+  const labelB = sel.mode === 'cpu' ? 'CPU' : sel.mode === 'practice' ? '더미' : 'PLAYER 2';
+  document.getElementById('pauseP1').innerHTML = moveListHtml(a, 'PLAYER 1');
+  document.getElementById('pauseP2').innerHTML = moveListHtml(b, labelB);
+  pauseRestartOpt.textContent = game.practiceMode ? '위치 · 체력 초기화' : '라운드 재시작';
 }
 
 function startFight() {
@@ -130,9 +142,31 @@ function startFight() {
     mode = 'result';
     UI.showResult(true, `${champ.char.displayName} WINS!`);
   };
+  UI.setPracticeMode(false);
   UI.setNames(charA.displayName, charB.displayName + (sel.mode === 'cpu' ? ' (CPU)' : ''));
   UI.showResult(false);
   UI.showHud(true);
+  fillPauseTable();
+  mode = 'fight';
+}
+
+function startPractice() {
+  if (game) game.dispose();
+  charselectEl.classList.remove('on');
+  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0));
+  const dummyCtrl = new VirtualController();
+  const charA = CHARACTERS[CHAR_IDS[sel.p1]];
+  const charB = CHARACTERS[CHAR_IDS[sel.p2]];
+  game = new Game(scene, fx, charA, charB, p1, dummyCtrl, { practice: true });
+  game.camera = camera;
+  window.__game = game;
+  ai = null; // dummy AI (if enabled) is driven internally by Game in practice mode
+  UI.setPracticeMode(true);
+  UI.setNames(charA.displayName, charB.displayName + ' (더미)');
+  UI.showResult(false);
+  UI.showHud(true);
+  UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+  UI.setPracticePanel(moveListHtml(game.fighters[0], 'PLAYER 1'), false);
   fillPauseTable();
   mode = 'fight';
 }
@@ -144,9 +178,34 @@ function backToTitle() {
   UI.showHud(false);
   UI.showResult(false);
   UI.showPause(false);
+  UI.setPracticeMode(false);
   charselectEl.classList.remove('on');
   UI.showTitle(true);
   mode = 'title';
+}
+
+function openPause() {
+  paused = true;
+  setPauseSel(0);
+  UI.showPause(true);
+}
+
+function runPauseAction(act) {
+  if (act === 'resume') {
+    paused = false;
+    UI.showPause(false);
+  } else if (act === 'restart') {
+    if (game.practiceMode) {
+      game.resetPracticePositions();
+      UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+    } else {
+      startFight();
+    }
+    paused = false;
+    UI.showPause(false);
+  } else if (act === 'exit') {
+    backToTitle();
+  }
 }
 
 window.addEventListener('keydown', (e) => {
@@ -156,21 +215,45 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowDown' || e.code === 'KeyS') { setMenuSel(menuIndex + 1); Sound.beep(); }
     if (e.code === 'Digit1') showCharSelect('cpu');
     else if (e.code === 'Digit2') showCharSelect('2p');
+    else if (e.code === 'Digit3') showCharSelect('practice');
     else if (e.code === 'Enter' || e.code === 'Space') showCharSelect(menuOpts[menuIndex].dataset.mode);
   } else if (mode === 'charselect') {
     const p1Turn = sel.phase === 'p1';
+    const soloTurn = sel.mode !== '2p'; // cpu/practice: P1 controls both picks
     if (['KeyA', 'ArrowLeft'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', -1);
     else if (['KeyD', 'ArrowRight'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', 1);
     else if (p1Turn && ['Enter', 'KeyJ', 'Space'].includes(e.code)) csConfirm();
-    else if (!p1Turn && sel.phase === 'p2' && ['Enter', 'Numpad1', 'KeyN'].includes(e.code)) csConfirm();
+    else if (!p1Turn && sel.phase === 'p2' &&
+      (['Enter', 'Numpad1', 'KeyN'].includes(e.code) || (soloTurn && ['KeyJ', 'Space'].includes(e.code)))) csConfirm();
     else if (e.code === 'Escape') backToTitle();
   } else if (mode === 'fight') {
-    if (e.code === 'KeyP') {
-      paused = !paused;
-      UI.showPause(paused);
-    } else if (e.code === 'Escape') {
-      if (paused) backToTitle();
-      else { paused = true; UI.showPause(true); }
+    if (paused) {
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') { setPauseSel(pauseIndex - 1); Sound.beep(); }
+      else if (e.code === 'ArrowDown' || e.code === 'KeyS') { setPauseSel(pauseIndex + 1); Sound.beep(); }
+      else if (e.code === 'Enter' || e.code === 'Space') runPauseAction(pauseOpts[pauseIndex].dataset.act);
+      else if (e.code === 'KeyP') { paused = false; UI.showPause(false); }
+      else if (e.code === 'Escape') { paused = false; UI.showPause(false); }
+      return;
+    }
+    if (e.code === 'KeyP') openPause();
+    else if (e.code === 'Escape') openPause();
+    else if (game?.practiceMode) {
+      if (e.code === 'KeyR') {
+        game.resetPracticePositions();
+        UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+      } else if (e.code === 'KeyG') {
+        game.forceGaugeMax = !game.forceGaugeMax;
+        if (game.forceGaugeMax) { game.fighters[0].meter = 100; game.fighters[1].meter = 100; }
+        UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+      } else if (e.code === 'Tab') {
+        e.preventDefault();
+        const m = game.cycleDummyMode();
+        UI.setPracticeStatus(m, game.forceGaugeMax);
+        Sound.beep();
+      } else if (e.code === 'KeyM') {
+        const on = !document.getElementById('practicePanel').classList.contains('on');
+        UI.setPracticePanel(moveListHtml(game.fighters[0], 'PLAYER 1'), on);
+      }
     }
   } else if (mode === 'result') {
     if (e.code === 'Enter') showCharSelect(sel.mode);
@@ -190,6 +273,11 @@ csCards.forEach((el, i) => {
     if (sel.phase === 'p1') { sel.p1 = i; renderCsCursor(); csConfirm(); }
     else if (sel.phase === 'p2') { sel.p2 = i; renderCsCursor(); csConfirm(); }
   });
+});
+pauseOpts.forEach((el, i) => {
+  el.style.pointerEvents = 'auto';
+  el.addEventListener('mouseenter', () => setPauseSel(i));
+  el.addEventListener('click', () => runPauseAction(el.dataset.act));
 });
 
 // gamepad navigation in menus
@@ -211,6 +299,10 @@ function padMenus() {
       if (e.right) csMove('p2', 1);
       if (e.confirm) csConfirm();
     }
+  } else if (mode === 'fight' && paused) {
+    if (e0.up) { setPauseSel(pauseIndex - 1); Sound.beep(); }
+    if (e0.down) { setPauseSel(pauseIndex + 1); Sound.beep(); }
+    if (e0.confirm) runPauseAction(pauseOpts[pauseIndex].dataset.act);
   } else if (mode === 'result') {
     if (e0.confirm) showCharSelect(sel.mode);
   }
@@ -268,6 +360,8 @@ function frame(now) {
     }
     fx.update(dt, camera);
     if (game) UI.update(dt, game.fighters);
+  } else {
+    padMenus();
   }
 
   updateCamera(paused ? 0 : dt);
