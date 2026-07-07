@@ -1,0 +1,15 @@
+{
+  "name": "sf-vs-tk",
+  "version": "0.1.0",
+  "description": "SF vs TK — web-based 3D fighting game prototype (Three.js)",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "serve:test": "python3 -m http.server 8321",
+    "test": "node test/smoke.mjs && node test/playtest.mjs && node test/wallsplat.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1",
+    "three": "^0.185.1"
+  }
+}
