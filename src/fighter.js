@@ -14,8 +14,11 @@ export class Fighter {
     scene.add(this.rig.root);
 
     this.maxHealth = charDef.health;
+    this.meter = 0; // super gauge 0..100, persists across rounds
     this.reset(0, 1);
   }
+
+  addMeter(v) { this.meter = Math.min(100, Math.max(0, this.meter + v)); }
 
   reset(x, facing) {
     this.pos = { x, y: 0 };
@@ -74,7 +77,8 @@ export class Fighter {
   }
 
   isInvulnerable() {
-    if (this.state === 'knockdown' || this.state === 'getup' || this.state === 'thrown' || this.state === 'ko' || this.state === 'win' || this.state === 'intro') return true;
+    if (this.state === 'knockdown' || this.state === 'getup' || this.state === 'roll' ||
+        this.state === 'thrown' || this.state === 'ko' || this.state === 'win' || this.state === 'intro') return true;
     if (this.state === 'attack' && this.move?.invuln) {
       const [a, b] = this.move.invuln;
       if (this.moveT >= a && this.moveT <= b) return true;
@@ -116,11 +120,26 @@ export class Fighter {
       return;
     }
     if (!this.canAct()) return;
+    if (this.trySuper()) return;
     if (c.pressed('grab')) { c.consume('grab'); this.startMove(m.grab); return; }
     if (c.pressed('skill')) { c.consume('skill'); this.startMove(this.pickSkill()); return; }
     const crouch = this.ctrl.held('down');
     if (c.pressed('punch')) { c.consume('punch'); this.startMove(crouch ? m.cpunch : m.punch); return; }
     if (c.pressed('kick')) { c.consume('kick'); this.startMove(crouch ? m.ckick : m.kick); return; }
+  }
+
+  // super art: full gauge + (punch+kick simultaneously, or the super macro button)
+  trySuper() {
+    const c = this.ctrl;
+    const m = this.char.moves;
+    if (this.meter < 100 || !m.superN) return false;
+    const combo = c.pressed('punch') && c.pressed('kick');
+    if (!combo && !c.pressed('super')) return false;
+    c.consume('punch'); c.consume('kick'); c.consume('super');
+    this.meter = 0;
+    this.startMove(m.superN);
+    this.gameRef?.onSuper(this, m.superN);
+    return true;
   }
 
   startMove(move) {
@@ -251,13 +270,15 @@ export class Fighter {
           }
         }
 
-        // skill-cancel on connect (jabs into skills)
+        // skill-cancel on connect (jabs into skills / super)
         if (mv.cancelable && (this.moveConnected || this.moveBlocked) &&
-            this.moveT >= mv.startup && this.moveT <= mv.startup + mv.active + 0.14 &&
-            c.pressed('skill')) {
-          c.consume('skill');
-          this.startMove(this.pickSkill());
-          break;
+            this.moveT >= mv.startup && this.moveT <= mv.startup + mv.active + 0.14) {
+          if (this.trySuper()) break;
+          if (c.pressed('skill')) {
+            c.consume('skill');
+            this.startMove(this.pickSkill());
+            break;
+          }
         }
 
         // air attack: ends on landing
@@ -330,7 +351,36 @@ export class Fighter {
 
       case 'knockdown': {
         this.vx = 0;
-        if (this.stateT >= 0.9) { this.state = 'getup'; this.stateT = 0; this.juggleHits = 0; this.wallSplatUsed = false; }
+        // okizeme mixup options: hold ↓ to stay down, back to roll away,
+        // punch = rising mid attack, kick = rising low attack
+        const stayDown = c.held('down') && this.stateT < 1.9;
+        if (this.stateT >= 0.9 && !stayDown) {
+          this.juggleHits = 0;
+          this.wallSplatUsed = false;
+          const backKey = this.facing > 0 ? 'left' : 'right';
+          const m = this.char.moves;
+          if (c.held(backKey)) {
+            this.state = 'roll'; this.stateT = 0;
+            this.vx = -this.facing * 4.2;
+          } else if ((c.held('punch') || c.pressed('punch')) && m.wakeupMid) {
+            c.consume('punch');
+            this.startMove(m.wakeupMid);
+          } else if ((c.held('kick') || c.pressed('kick')) && m.wakeupLow) {
+            c.consume('kick');
+            this.startMove(m.wakeupLow);
+          } else {
+            this.state = 'getup'; this.stateT = 0;
+          }
+        } else if (this.stateT >= 1.9) {
+          this.state = 'getup'; this.stateT = 0;
+          this.juggleHits = 0; this.wallSplatUsed = false;
+        }
+        break;
+      }
+
+      case 'roll': {
+        this.vx *= Math.pow(0.05, dt);
+        if (this.stateT >= 0.38) { this.state = 'getup'; this.stateT = 0; this.vx = 0; }
         break;
       }
 
@@ -494,6 +544,11 @@ export class Fighter {
         break;
       }
       case 'knockdown': case 'ko': pose = KD; break;
+      case 'roll': {
+        const u = Math.min(1, t / 0.38);
+        pose = { ...KD, ry: u * 5.2, y: KD.y + Math.sin(u * Math.PI) * 0.1 };
+        break;
+      }
       case 'getup': pose = lerpPose(KD, ST, Math.min(1, t / 0.35)); break;
       case 'wallsplat': pose = WALLSPLAT; break;
       case 'thrown': pose = { ...HIT_M, y: this.pos.y > 0.05 ? 0 : HIT_M.y }; break;
@@ -507,6 +562,12 @@ export class Fighter {
     this.rig.applyPose(pose);
     this.rig.root.position.set(this.pos.x, this.pos.y, 0);
     this.rig.root.rotation.y = this.facing > 0 ? 0 : Math.PI;
-    this.rig.setFlash(this.flash * 0.9);
+    let glow = this.flash * 0.9;
+    if (this.state === 'attack' && this.move?.isSuper) {
+      glow = Math.max(glow, 0.25 + Math.sin(performance.now() * 0.03) * 0.12);
+    } else if (this.meter >= 100) {
+      glow = Math.max(glow, 0.06 + Math.sin(performance.now() * 0.008) * 0.05);
+    }
+    this.rig.setFlash(glow);
   }
 }

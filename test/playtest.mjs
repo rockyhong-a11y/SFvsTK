@@ -14,6 +14,10 @@ const ann = () => page.evaluate(() => document.getElementById('announce').textCo
 await page.goto('http://localhost:8321/index.html');
 await page.waitForTimeout(800);
 await page.keyboard.press('Digit2'); // 2P mode: P2 is a human dummy we control
+await page.waitForTimeout(400);
+await page.keyboard.press('Enter'); // P1 confirms Chun-Li
+await page.waitForTimeout(300);
+await page.keyboard.press('Enter'); // P2 confirms Nina
 await page.waitForTimeout(1600);
 
 // --- Scenario 1: wall splat ---

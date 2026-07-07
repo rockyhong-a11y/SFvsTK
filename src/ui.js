@@ -12,6 +12,8 @@ export const UI = {
       hud: $('hud'),
       hp: [$('hp0'), $('hp1')],
       lag: [$('lag0'), $('lag1')],
+      meters: [$('meter0'), $('meter1')],
+      meterBoxes: [$('meterBox0'), $('meterBox1')],
       names: [$('name0'), $('name1')],
       moves: [$('move0'), $('move1')],
       combos: [$('combo0'), $('combo1')],
@@ -79,6 +81,13 @@ export const UI = {
     this.subT = dur;
   },
 
+  superFlash() {
+    const d = document.createElement('div');
+    d.className = 'superFlash';
+    this.els.hud.appendChild(d);
+    setTimeout(() => d.remove(), 700);
+  },
+
   damageNumber(screenX, screenY, dmg, counter = false) {
     const d = document.createElement('div');
     d.className = 'dmgNum' + (counter ? ' counter' : '');
@@ -99,6 +108,10 @@ export const UI = {
       } else this.lagHp[i] = this.shownHp[i];
       this.els.hp[i].style.width = `${this.shownHp[i] * 100}%`;
       this.els.lag[i].style.width = `${this.lagHp[i] * 100}%`;
+
+      const meter = Math.max(0, Math.min(1, f.meter / 100));
+      this.els.meters[i].style.width = `${meter * 100}%`;
+      this.els.meterBoxes[i].classList.toggle('full', f.meter >= 100);
 
       if (this.moveNameT[i] > 0) {
         this.moveNameT[i] -= dt;

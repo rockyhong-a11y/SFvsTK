@@ -29,7 +29,31 @@ export class AI {
     const fwdKey = me.facing > 0 ? 'right' : 'left';
     const backKey = me.facing > 0 ? 'left' : 'right';
 
+    // --- wakeup mixups: pick a plan once per knockdown ---
+    if (me.state === 'knockdown') {
+      if (!this.kdPlanned) {
+        this.kdPlanned = true;
+        c.clearHolds();
+        const r = Math.random();
+        if (r < 0.28) c.hold(backKey);            // back roll
+        else if (r < 0.46) c.hold('punch');       // rising mid
+        else if (r < 0.6) c.hold('kick');         // rising low
+        else if (r < 0.72) c.hold('down');        // stay down (bait meaty)
+        // else: neutral getup
+      }
+      return;
+    }
+    this.kdPlanned = false;
+
     // --- continuous reactions (every frame) ---
+    // 아스카 스타일: 반격기로 압박을 받아친다
+    if (me.char.moves.skillN?.parry && opp.isThreatening() && dist < 1.9 &&
+        opp.move?.level !== 'low' && me.canAct() && Math.random() < dt * 5) {
+      c.clearHolds();
+      c.tap('skill'); // neutral skill = reversal
+      this.plan = 'parry'; this.planT = 0.4;
+      return;
+    }
     // guard reaction: opponent attack incoming and close
     if (opp.isThreatening() && dist < 2.6 && me.canAct()) {
       if (Math.random() < this.blockReact * dt * 30) {
@@ -76,15 +100,21 @@ export class AI {
     const aggro = this.aggression + (desperate ? 0.25 : 0);
 
     if (oppDown) {
-      // okizeme: step in, time a meaty low/mid
-      if (dist > 1.4) { c.hold(fwdKey); this.holdWalk(c, fwdKey, 0.2); }
-      else if (Math.random() < 0.5) {
-        c.hold('down'); c.tap('skill'); // meaty low
-      } else if (Math.random() < 0.5) {
-        c.tap('kick');
-      } else {
-        c.hold(backKey); // back off a touch
+      // okizeme: step in, mix meaty low / mid launcher / spaced bait
+      if (dist > 1.5) { c.hold(fwdKey); }
+      else {
+        const r = Math.random();
+        if (r < 0.35) { c.hold('down'); c.tap('skill'); }      // meaty low
+        else if (r < 0.6) { c.hold(fwdKey); c.tap('skill'); }  // meaty launcher
+        else if (r < 0.75) c.tap('kick');                      // meaty mid
+        else c.hold(backKey);                                  // step back, bait wakeup attack
       }
+      return;
+    }
+
+    // super art when gauge is full and in range
+    if (me.meter >= 100 && dist < 2.6 && Math.random() < 0.45) {
+      c.tap('super');
       return;
     }
 

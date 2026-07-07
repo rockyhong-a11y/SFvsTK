@@ -217,6 +217,16 @@ export class Game {
     const dir = attacker ? attacker.facing : (victim.pos.x >= contact.x ? 1 : -1);
     const ai = this.fighters.indexOf(owner ?? victim.opponent);
 
+    // reversal check: victim is mid-parry and the strike is parryable
+    // (lows and projectiles beat the parry; attacker==null means projectile)
+    if (attacker && victim.state === 'attack' && victim.move?.parry && atk.level !== 'low') {
+      const pm = victim.move;
+      if (victim.moveT >= pm.startup && victim.moveT <= pm.startup + pm.active) {
+        this.triggerReversal(victim, attacker, pm, contact);
+        return;
+      }
+    }
+
     // guard check
     const canGuard = (victim.canAct() || victim.state === 'blockstun') && victim.grounded;
     if (canGuard && victim.holdingBack()) {
@@ -242,6 +252,9 @@ export class Game {
         this.fx.shake(0.05);
         Sound.block();
         if (attacker) attacker.moveBlocked = true;
+        // guard builds a little meter on both sides
+        victim.addMeter(2);
+        owner?.addMeter?.(1.5);
         return;
       }
     }
@@ -268,6 +281,10 @@ export class Game {
 
     victim.applyHit(atk, dir, opts);
     if (attacker) attacker.moveConnected = true;
+
+    // super gauge: dealing and taking damage both build meter
+    owner?.addMeter?.(dmg * 0.055);
+    victim.addMeter(dmg * 0.045);
 
     // combo tracking
     this.combo[ai].hits++;
@@ -299,6 +316,47 @@ export class Game {
   }
 
   // ------------------------------------------------------------------
+  // 아스카 반격기: intercepts the strike and auto-counters
+  triggerReversal(parrier, attacker, pm, contact) {
+    const dir = parrier.facing;
+    const idx = this.fighters.indexOf(parrier);
+    attacker.applyHit(
+      { damage: pm.counterDamage, level: 'mid', kb: 5.5, kbUp: 5.5, hitstun: 0.5, knockdown: true },
+      dir, {}
+    );
+    parrier.addMeter(18);
+    const m = parrier.char.moves;
+    if (m.parryCounter) parrier.startMove(m.parryCounter);
+    this.combo[idx] = { hits: 1, dmg: pm.counterDamage };
+
+    this.fx.spark(contact.x, contact.y, 0x7fd0ff, 22, 5.5);
+    this.fx.ring(contact.x, contact.y, 0x9fd8ff);
+    this.fx.hitstop(0.14);
+    this.fx.shake(0.32);
+    Sound.slam();
+    Sound.beep();
+    UI.subAnnounce('REVERSAL!');
+    UI.moveName(idx, pm.name);
+    this.spawnDamageNumber(contact, pm.counterDamage, true);
+    if (attacker.health <= 0 && this.phase === 'fight') this.ko(attacker);
+  }
+
+  // super art activation: freeze + flash + announcement
+  onSuper(f, mv) {
+    const idx = this.fighters.indexOf(f);
+    UI.moveName(idx, mv.name);
+    UI.announce(mv.name, 0.9);
+    UI.superFlash();
+    Sound.ko(); // big impact swell
+    Sound.laser();
+    this.fx.hitstop(0.42); // super freeze
+    this.fx.shake(0.2);
+    this.fx.ring(f.pos.x, f.pos.y + 1.1, 0xfff2b0);
+    // ghost burst
+    for (let i = 0; i < 3; i++) this.fx.afterimage(f.rig, 0xffe08a);
+  }
+
+  // ------------------------------------------------------------------
   tryThrow(attacker, mv) {
     const victim = attacker.opponent;
     if (victim.isInvulnerable() || victim.airborne) return;
@@ -319,6 +377,8 @@ export class Game {
       if (victim.state !== 'thrown') return;
       const contact = { x: victim.pos.x, y: victim.pos.y + 1.1 };
       victim.applyHit({ damage: mv.damage, level: 'mid', kb: mv.kb, kbUp: mv.kbUp, hitstun: 0.5 }, dir, {});
+      attacker.addMeter(8);
+      victim.addMeter(mv.damage * 0.045);
       this.combo[ai] = { hits: 1, dmg: mv.damage };
       this.fx.spark(contact.x, contact.y, 0xffcf6e, 16, 5);
       this.fx.hitstop(0.09);

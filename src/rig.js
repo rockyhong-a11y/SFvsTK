@@ -116,6 +116,34 @@ export function buildRig(cfg) {
     const bang = box(0.05, 0.12, 0.2, mats.hair);
     bang.position.set(0.1, 0.19, 0);
     head.add(bang);
+  } else if (cfg.hairstyle === 'braids') {
+    // twin long braids hanging at the front sides
+    for (const s of [-1, 1]) {
+      const braid = box(0.07, 0.46, 0.07, mats.hair);
+      braid.position.set(0.04, -0.1, s * 0.13);
+      braid.rotation.x = s * 0.12;
+      head.add(braid);
+      const knot = box(0.09, 0.09, 0.09, mats.hair);
+      knot.position.set(0.02, 0.14, s * 0.12);
+      head.add(knot);
+    }
+    const bang = box(0.05, 0.1, 0.2, mats.hair);
+    bang.position.set(0.1, 0.2, 0);
+    head.add(bang);
+  } else if (cfg.hairstyle === 'short') {
+    // bob cut: side + back volume
+    const side = box(0.2, 0.2, 0.28, mats.hair);
+    side.position.set(-0.05, 0.12, 0);
+    head.add(side);
+    const bang = box(0.05, 0.09, 0.22, mats.hair);
+    bang.position.set(0.11, 0.21, 0);
+    head.add(bang);
+  }
+  if (cfg.beret) {
+    const beret = box(0.3, 0.07, 0.28, mats.accent);
+    beret.position.set(-0.03, 0.3, 0.02);
+    beret.rotation.x = 0.12;
+    head.add(beret);
   }
 
   function buildArm(side) { // side: +1 near(z+), -1 far
