@@ -41,7 +41,7 @@ const fx = new FX(scene);
 UI.init();
 
 // ---------------- app state ----------------
-const CHAR_IDS = ['chunli', 'nina', 'cammy', 'asuka', 'zangief', 'rmika', 'sakura'];
+const CHAR_IDS = ['chunli', 'nina', 'cammy', 'asuka', 'zangief', 'rmika'];
 let mode = 'title'; // title | charselect | fight | result
 let game = null;
 let ai = null;

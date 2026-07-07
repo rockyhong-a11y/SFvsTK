@@ -10,8 +10,21 @@
 //   ry          : whole-body extra yaw (spins)
 //   rz          : whole-body pitch (+ = fall on back), for knockdown/launch
 import * as THREE from 'three';
+import { skinMaterial, leatherMaterial, hairMaterial } from './textures.js';
 
 const POSE_KEYS = ['y','x','tl','tw','sL','sR','sxL','sxR','eL','eR','hL','hR','kL','kR','ry','rz'];
+
+// Per-character leather finish — keeps each fighter's original vibe while all
+// clothes read as leather. grain = pebbling density, creases = wear lines,
+// gloss = roughness (lower = shinier), metal = metalness for hardware sheen.
+const FINISHES = {
+  silk:      { top: { grain: 0.55, creases: 6,  wear: 0.4, gloss: 0.45 }, pants: { grain: 0.55, creases: 6,  wear: 0.4, gloss: 0.45 } }, // fine glossy qipao leather
+  sleek:     { top: { grain: 0.45, creases: 5,  wear: 0.3, gloss: 0.38 }, pants: { grain: 0.45, creases: 5,  wear: 0.3, gloss: 0.38 } }, // polished catsuit
+  military:  { top: { grain: 1.3,  creases: 16, wear: 0.7, gloss: 0.7  }, pants: { grain: 1.3,  creases: 16, wear: 0.7, gloss: 0.7  } }, // matte field gear
+  sturdy:    { top: { grain: 1.0,  creases: 10, wear: 0.5, gloss: 0.6  }, pants: { grain: 1.0,  creases: 10, wear: 0.5, gloss: 0.6  } }, // dogi-weight hide
+  rugged:    { top: { grain: 1.7,  creases: 22, wear: 1.0, gloss: 0.75 }, pants: { grain: 1.7,  creases: 22, wear: 1.0, gloss: 0.75 } }, // battle-worn rawhide
+  spotlight: { top: { grain: 0.4,  creases: 4,  wear: 0.3, gloss: 0.3  }, pants: { grain: 0.4,  creases: 4,  wear: 0.3, gloss: 0.3  } }, // shiny ring gear
+};
 
 export function lerpPose(a, b, t) {
   const out = {};
@@ -43,13 +56,17 @@ function box(w, h, d, mat) {
 }
 
 export function buildRig(cfg) {
+  // seed derived from the outfit palette → every character gets their own
+  // stable grain/crease pattern even with the same finish preset
+  const seed = ((cfg.top ^ (cfg.pants << 1) ^ (cfg.accent << 2)) >>> 0) % 100000;
+  const finish = FINISHES[cfg.finish] || FINISHES.sturdy;
   const mats = {
-    skin: new THREE.MeshStandardMaterial({ color: cfg.skin, roughness: 0.75 }),
-    top: new THREE.MeshStandardMaterial({ color: cfg.top, roughness: 0.85 }),
-    pants: new THREE.MeshStandardMaterial({ color: cfg.pants, roughness: 0.85 }),
-    glove: new THREE.MeshStandardMaterial({ color: cfg.glove, roughness: 0.6 }),
-    hair: new THREE.MeshStandardMaterial({ color: cfg.hair, roughness: 0.9 }),
-    accent: new THREE.MeshStandardMaterial({ color: cfg.accent, roughness: 0.6 }),
+    skin: skinMaterial(cfg.skin, seed + 11),
+    top: leatherMaterial(cfg.top, seed + 23, finish.top),
+    pants: leatherMaterial(cfg.pants, seed + 37, finish.pants),
+    glove: leatherMaterial(cfg.glove, seed + 41, { grain: 0.7, creases: 8, wear: 0.6, gloss: 0.42 }), // polished gloves/boots
+    hair: hairMaterial(cfg.hair, seed + 53),
+    accent: leatherMaterial(cfg.accent, seed + 67, { grain: 0.4, creases: 3, wear: 0.3, gloss: 0.3, metal: 0.35 }), // patent trim
   };
   const materials = Object.values(mats);
 

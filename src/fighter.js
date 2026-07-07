@@ -1,5 +1,4 @@
 import { buildRig, sampleClip, lerpPose } from './rig.js';
-import { buildSkinnedRig } from './skinnedRig.js';
 import { ST, CR, AIR, HIT_H, HIT_M, BLK_S, BLK_C, LAUNCHED, KD, WALLSPLAT, CRUMPLE_A, WIN } from './moves.js';
 import { Sound } from './audio.js';
 
@@ -15,7 +14,7 @@ export class Fighter {
     this.id = uid++;
     this.char = charDef;
     this.ctrl = ctrl;
-    this.rig = charDef.rig.type === 'skinned' ? buildSkinnedRig(charDef.rig.modelId) : buildRig(charDef.rig);
+    this.rig = buildRig(charDef.rig);
     scene.add(this.rig.root);
 
     this.maxHealth = charDef.health;

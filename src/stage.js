@@ -1,7 +1,22 @@
 // 3D dojo-style stage with left/right walls (wall-splat boundaries).
+// Surfaces use procedural textures + bump maps (wood grain, plaster, woven
+// fabric) so walls/floor catch the lantern light with real depth.
 import * as THREE from 'three';
+import { getTextureSet } from './textures.js';
 
 export const WALL_X = 6.4; // gameplay wall plane
+
+function texturedMat(kind, color, seed, opts = {}) {
+  const { map, bumpMap } = getTextureSet(kind, color, seed);
+  return new THREE.MeshStandardMaterial({
+    map, bumpMap,
+    bumpScale: opts.bumpScale ?? 1.6,
+    roughness: opts.roughness ?? 0.85,
+    metalness: opts.metalness ?? 0,
+    ...(opts.side ? { side: opts.side } : {}),
+    ...(opts.emissive != null ? { emissive: opts.emissive, emissiveIntensity: opts.emissiveIntensity ?? 1 } : {}),
+  });
+}
 
 export function buildStage(scene) {
   scene.background = new THREE.Color(0x161226);
@@ -21,10 +36,10 @@ export function buildStage(scene) {
   rim.position.set(-5, 6, -6);
   scene.add(rim);
 
-  // floor — wooden planks
+  // floor — wooden planks (two grain seeds so alternating boards read distinct)
   const floorGroup = new THREE.Group();
-  const plankMatA = new THREE.MeshStandardMaterial({ color: 0x8a6642, roughness: 0.9 });
-  const plankMatB = new THREE.MeshStandardMaterial({ color: 0x7a5738, roughness: 0.9 });
+  const plankMatA = texturedMat('wood', 0x8a6642, 101, { roughness: 0.8, bumpScale: 2.0 });
+  const plankMatB = texturedMat('wood', 0x7a5738, 202, { roughness: 0.82, bumpScale: 2.0 });
   for (let i = 0; i < 16; i++) {
     const plank = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.08, 7.6), i % 2 ? plankMatA : plankMatB);
     plank.position.set(-7.5 + i, -0.04, 0);
@@ -33,19 +48,19 @@ export function buildStage(scene) {
   }
   scene.add(floorGroup);
 
-  // center emblem
+  // center emblem — worn painted circle
   const emblem = new THREE.Mesh(
     new THREE.CircleGeometry(1.4, 40),
-    new THREE.MeshStandardMaterial({ color: 0xa03030, roughness: 0.8 })
+    texturedMat('plaster', 0xa03030, 303, { roughness: 0.75, bumpScale: 1.2 })
   );
   emblem.rotation.x = -Math.PI / 2;
   emblem.position.y = 0.005;
   emblem.receiveShadow = true;
   scene.add(emblem);
 
-  // side walls
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0x4a3b55, roughness: 0.85 });
-  const wallTrim = new THREE.MeshStandardMaterial({ color: 0xd8b56a, roughness: 0.5, metalness: 0.3 });
+  // side walls — cracked plaster with gold trim
+  const wallMat = texturedMat('plaster', 0x4a3b55, 404, { roughness: 0.88, bumpScale: 2.2 });
+  const wallTrim = new THREE.MeshStandardMaterial({ color: 0xd8b56a, roughness: 0.45, metalness: 0.45 });
   for (const s of [-1, 1]) {
     const wall = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3.6, 7.6), wallMat);
     wall.position.set(s * (WALL_X + 0.45), 1.8, 0);
@@ -69,20 +84,20 @@ export function buildStage(scene) {
   }
 
   // back platform edge + pillars for depth
-  const backMat = new THREE.MeshStandardMaterial({ color: 0x2c2440, roughness: 0.9 });
+  const backMat = texturedMat('plaster', 0x2c2440, 505, { roughness: 0.92, bumpScale: 1.8 });
   const backWall = new THREE.Mesh(new THREE.BoxGeometry(15.4, 4.5, 0.4), backMat);
   backWall.position.set(0, 2.2, -4.0);
   backWall.receiveShadow = true;
   scene.add(backWall);
-  const pillarMat = new THREE.MeshStandardMaterial({ color: 0x5a4a35, roughness: 0.8 });
+  const pillarMat = texturedMat('wood', 0x5a4a35, 606, { roughness: 0.78, bumpScale: 2.0 });
   for (const x of [-6, -3, 0, 3, 6]) {
     const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 4.4, 0.4), pillarMat);
     pillar.position.set(x, 2.2, -3.7);
     pillar.castShadow = true;
     scene.add(pillar);
   }
-  // hanging banners
-  const bannerMat = new THREE.MeshStandardMaterial({ color: 0x8f2038, roughness: 0.9, side: THREE.DoubleSide });
+  // hanging banners — woven cloth with fold shading
+  const bannerMat = texturedMat('fabric', 0x8f2038, 707, { roughness: 0.9, bumpScale: 1.0, side: THREE.DoubleSide });
   for (const x of [-4.5, 1.5]) {
     const banner = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 2.2), bannerMat);
     banner.position.set(x, 2.6, -3.45);
