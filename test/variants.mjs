@@ -18,37 +18,42 @@ await page.waitForTimeout(800);
 await page.keyboard.press('Digit1');
 await page.waitForTimeout(300);
 
-// Select Sakura (move down 6 times from Chun-Li using S key)
-for (let i = 0; i < 6; i++) await page.keyboard.press('KeyS');
+// Step 1: Select Sakura (move right 6 times from Chun-Li using D key)
+for (let i = 0; i < 6; i++) await page.keyboard.press('KeyD');
 await page.waitForTimeout(200);
+console.log('Selected Sakura character');
 
-// Check initial variant is shown (should be "Box" or first variant)
-const variantLabel1 = await page.textContent('body');
-console.log('After selecting Sakura, page contains variant info:', variantLabel1.includes('Box') || variantLabel1.includes('Juri') ? 'YES' : 'NO');
+// Step 2: Confirm character selection → moves to model selection
+console.log('Pressing Enter to move to model selection...');
+await page.keyboard.press('Enter');
+await page.waitForTimeout(300);
 
-// Cycle through variants (press ArrowRight/D 2 times to cycle)
-const beforeVariant = await page.evaluate(() => document.querySelectorAll('[style*="color: #7fd0ff"]')[0]?.textContent || 'unknown');
-console.log('Before variant cycling:', beforeVariant);
+const title2 = await page.textContent('#csTitle');
+console.log('Title after character confirm:', title2);
 
-await page.keyboard.press('KeyD');
+// Step 3: Try to select model (up/down arrows - W/S keys)
+// Should skip non-selectable variants automatically
+await page.keyboard.press('KeyW');
 await page.waitForTimeout(200);
-const afterVariant1 = await page.evaluate(() => document.querySelectorAll('[style*="color: #7fd0ff"]')[0]?.textContent || 'unknown');
-console.log('After pressing D (right) once:', afterVariant1, '(changed:', beforeVariant !== afterVariant1, ')');
+console.log('Pressed W to cycle through models');
 
-await page.keyboard.press('KeyD');
-await page.waitForTimeout(200);
-const afterVariant2 = await page.evaluate(() => document.querySelectorAll('[style*="color: #7fd0ff"]')[0]?.textContent || 'unknown');
-console.log('After pressing D (right) twice:', afterVariant2, '(changed:', afterVariant1 !== afterVariant2, ')');
-
-// Press Enter to confirm character (P1 selection)
-console.log('Pressing Enter to confirm P1...');
+// Step 4: Confirm model selection → moves to P2 character selection
+console.log('Pressing Enter to confirm model and move to P2...');
 await page.keyboard.press('Enter');
 await page.waitForTimeout(500);
 
-// Select P2 (random CPU pick, but we'll press Enter to auto-pick)
-console.log('Pressing Enter to confirm P2...');
+const title3 = await page.textContent('#csTitle');
+console.log('Title after model confirm:', title3);
+
+// Step 5: Select random character for P2 (just press Enter to auto-select)
+console.log('Pressing Enter to auto-select P2 character...');
 await page.keyboard.press('Enter');
-await page.waitForTimeout(3000); // wait longer for models to load
+await page.waitForTimeout(300);
+
+// Step 6: Select P2 model
+console.log('Pressing Enter to confirm P2 model...');
+await page.keyboard.press('Enter');
+await page.waitForTimeout(3000); // wait for models to load
 
 // Verify game started (check for HUD elements)
 const p1Name = await page.textContent('#name0');

@@ -76,21 +76,29 @@ function setPauseSel(i) {
 
 function showCharSelect(vsMode) {
   sel.mode = vsMode;
-  sel.phase = 'p1';
+  sel.phase = 'p1-char';
   sel.p1 = 0;
   sel.p2 = 1;
   mode = 'charselect';
   UI.showTitle(false);
   charselectEl.classList.add('on');
-  csTitle.textContent = 'P1 — 캐릭터 선택';
+  updateCharSelectTitle();
   renderCsCursor();
+}
+
+function updateCharSelectTitle() {
+  if (sel.phase === 'p1-char') csTitle.textContent = 'P1 — 캐릭터 선택';
+  else if (sel.phase === 'p1-model') csTitle.textContent = 'P1 — 모델 선택';
+  else if (sel.phase === 'p2-char') csTitle.textContent = sel.mode === 'practice' ? '더미 — 캐릭터 선택' : 'P2 — 캐릭터 선택';
+  else if (sel.phase === 'p2-model') csTitle.textContent = sel.mode === 'practice' ? '더미 — 모델 선택' : 'P2 — 모델 선택';
 }
 
 function renderCsCursor() {
   csCards.forEach((el, i) => {
     el.classList.toggle('selP1', i === sel.p1);
-    el.classList.toggle('selP2', mode === 'charselect' && sel.phase !== 'p1' && i === sel.p2);
+    el.classList.toggle('selP2', mode === 'charselect' && (sel.phase === 'p2-char' || sel.phase === 'p2-model') && i === sel.p2);
   });
+  updateCharSelectTitle();
   updateVariantDisplay();
 }
 
@@ -120,6 +128,8 @@ function updateVariantDisplay() {
 }
 
 function csMove(who, delta) {
+  // Only allow during character selection phases
+  if (!sel.phase.endsWith('-char')) return;
   Sound.beep();
   const n = CHAR_IDS.length;
   if (who === 'p1') sel.p1 = (sel.p1 + delta + n) % n;
@@ -129,30 +139,52 @@ function csMove(who, delta) {
 }
 
 function csVariantMove(who, delta) {
+  // Only allow during model selection phases
+  if (!sel.phase.endsWith('-model')) return;
   Sound.beep();
   const charId = CHAR_IDS[sel[who]];
   const char = CHARACTERS[charId];
   const variantKey = `${who}Variant`;
-  const n = (char.variants && char.variants.length) || 1;
-  sel[variantKey] = (sel[variantKey] + delta + n) % n;
+  const variants = char.variants || [];
+  if (!variants.length) return;
+
+  let idx = (sel[variantKey] + delta + variants.length) % variants.length;
+
+  // Skip non-selectable variants
+  let attempts = 0;
+  while (attempts < variants.length && variants[idx].selectable === false) {
+    idx = (idx + delta + variants.length) % variants.length;
+    attempts++;
+  }
+
+  sel[variantKey] = idx;
   renderCsCursor();
 }
 
 function csConfirm() {
   Sound.announce();
-  if (sel.phase === 'p1') {
+  if (sel.phase === 'p1-char') {
+    sel.phase = 'p1-model';
+    updateCharSelectTitle();
+    renderCsCursor();
+  } else if (sel.phase === 'p1-model') {
     if (sel.mode === 'cpu') {
       sel.phase = 'cpu';
       csTitle.textContent = 'CPU 상대 결정 중...';
       sel.p2 = Math.floor(Math.random() * CHAR_IDS.length);
+      sel.p2Variant = 0;
       renderCsCursor();
       setTimeout(() => { if (mode === 'charselect') startFight(); }, 550);
     } else {
-      sel.phase = 'p2';
-      csTitle.textContent = sel.mode === 'practice' ? '더미 — 캐릭터 선택' : 'P2 — 캐릭터 선택';
+      sel.phase = 'p2-char';
+      updateCharSelectTitle();
       renderCsCursor();
     }
-  } else if (sel.phase === 'p2') {
+  } else if (sel.phase === 'p2-char') {
+    sel.phase = 'p2-model';
+    updateCharSelectTitle();
+    renderCsCursor();
+  } else if (sel.phase === 'p2-model') {
     if (sel.mode === 'practice') startPractice(); else startFight();
   }
 }
@@ -342,15 +374,13 @@ window.addEventListener('keydown', (e) => {
     else if (e.code === 'Digit3') showCharSelect('practice');
     else if (e.code === 'Enter' || e.code === 'Space') showCharSelect(menuOpts[menuIndex].dataset.mode);
   } else if (mode === 'charselect') {
-    const p1Turn = sel.phase === 'p1';
+    const isP1Turn = sel.phase.startsWith('p1-');
     const soloTurn = sel.mode !== '2p'; // cpu/practice: P1 controls both picks
-    if (['KeyW', 'ArrowUp'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', -1);
-    else if (['KeyS', 'ArrowDown'].includes(e.code)) csMove(p1Turn ? 'p1' : 'p2', 1);
-    else if (['KeyA', 'ArrowLeft'].includes(e.code)) csVariantMove(p1Turn ? 'p1' : 'p2', -1);
-    else if (['KeyD', 'ArrowRight'].includes(e.code)) csVariantMove(p1Turn ? 'p1' : 'p2', 1);
-    else if (p1Turn && ['Enter', 'KeyJ', 'Space'].includes(e.code)) csConfirm();
-    else if (!p1Turn && sel.phase === 'p2' &&
-      (['Enter', 'Numpad1', 'KeyN'].includes(e.code) || (soloTurn && ['KeyJ', 'Space'].includes(e.code)))) csConfirm();
+    if (['KeyA', 'ArrowLeft'].includes(e.code)) csMove(isP1Turn ? 'p1' : 'p2', -1);
+    else if (['KeyD', 'ArrowRight'].includes(e.code)) csMove(isP1Turn ? 'p1' : 'p2', 1);
+    else if (['KeyW', 'ArrowUp'].includes(e.code)) csVariantMove(isP1Turn ? 'p1' : 'p2', -1);
+    else if (['KeyS', 'ArrowDown'].includes(e.code)) csVariantMove(isP1Turn ? 'p1' : 'p2', 1);
+    else if ((isP1Turn || sel.phase.startsWith('p2-')) && ['Enter', 'KeyJ', 'Space'].includes(e.code)) csConfirm();
     else if (e.code === 'Escape') backToTitle();
   } else if (mode === 'fight') {
     if (paused) {

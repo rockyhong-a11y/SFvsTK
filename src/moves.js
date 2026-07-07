@@ -1134,9 +1134,10 @@ const withVariants = {
   sakura: {
     ...SAKURA,
     variants: [
-      { name: 'Juri', rig: SAKURA.rig },
-      { name: 'Athletic', rig: { type: 'skinned', modelId: 'sports_girl' } },
-      { name: 'Tina', rig: { type: 'skinned', modelId: 'tina' } },
+      { name: 'Juri', rig: SAKURA.rig, selectable: true },
+      { name: 'Athletic', rig: { type: 'skinned', modelId: 'sports_girl' }, selectable: true },
+      { name: 'Tina', rig: { type: 'skinned', modelId: 'tina' }, selectable: true },
+      { name: 'Champion', rig: { type: 'skinned', modelId: 'champion' }, selectable: false }, // static model, disabled
     ],
     defaultVariant: 0,
   },
