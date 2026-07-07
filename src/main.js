@@ -109,20 +109,31 @@ function updateVariantDisplay() {
     const char = CHARACTERS[charId];
     const variantIdx = sel[`${player}Variant`];
     const variant = char.variants && char.variants[variantIdx];
-    if (variant) {
-      const card = csCards[charIdx];
-      let hint = card.getAttribute('data-variant-hint') || '';
-      if (!hint) {
-        hint = document.createElement('div');
-        hint.style.fontSize = '10px';
-        hint.style.color = '#7fd0ff';
-        hint.style.marginTop = '4px';
-        card.appendChild(hint);
-        card.setAttribute('data-variant-hint', 'set');
+
+    const card = csCards[charIdx];
+    let hint = card.getAttribute('data-variant-hint') || '';
+    if (!hint) {
+      hint = document.createElement('div');
+      hint.style.fontSize = '10px';
+      hint.style.color = '#7fd0ff';
+      hint.style.marginTop = '4px';
+      card.appendChild(hint);
+      card.setAttribute('data-variant-hint', 'set');
+    } else {
+      hint = card.querySelector('div[style*="color: #7fd0ff"]');
+    }
+
+    // Only show variant hint during model selection phases
+    const isModelSelectionPhase = sel.phase.endsWith('-model');
+    const isThisPlayerPhase = (player === 'p1' && sel.phase.startsWith('p1-')) || (player === 'p2' && sel.phase.startsWith('p2-'));
+
+    if (hint) {
+      if (variant && isModelSelectionPhase && isThisPlayerPhase) {
+        hint.textContent = `[${variant.name}] W/S 또는 ↑↓`;
+        hint.style.display = '';
       } else {
-        hint = card.querySelector('div[style*="color: #7fd0ff"]');
+        hint.style.display = 'none';
       }
-      if (hint) hint.textContent = `[${variant.name}] ↑↓`;
     }
   });
 }
