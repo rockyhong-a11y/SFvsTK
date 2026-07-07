@@ -16,6 +16,10 @@ await page.goto('file://' + resolve(root, 'SFvsTK.html'));
 await page.waitForTimeout(1000);
 await page.keyboard.press('Digit1');
 await page.waitForTimeout(400);
+await page.keyboard.press('Enter'); // skip story intro
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P1 pilot
+await page.waitForTimeout(250);
 await page.keyboard.press('Enter');
 await page.waitForTimeout(3000);
 

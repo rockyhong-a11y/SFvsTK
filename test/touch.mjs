@@ -18,6 +18,10 @@ console.log('viewport:', JSON.stringify(vp));
 
 await page.keyboard.press('Digit1'); // VS CPU (avoids needing a 2nd human)
 await page.waitForTimeout(400);
+await page.keyboard.press('Enter'); // skip story intro
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P1 pilot
+await page.waitForTimeout(250);
 await page.keyboard.press('Enter');
 await page.waitForTimeout(2300);
 

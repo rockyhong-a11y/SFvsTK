@@ -16,11 +16,15 @@ await page.waitForTimeout(1000);
 // practice mode with zangief
 await page.keyboard.press('Digit3');
 await page.waitForTimeout(300);
+await page.keyboard.press('Enter'); // P1 pilot
+await page.waitForTimeout(250);
 await page.keyboard.press('KeyD'); await page.keyboard.press('KeyD');
 await page.keyboard.press('KeyD'); await page.keyboard.press('KeyD'); // -> zangief
 await page.keyboard.press('Enter');
 await page.waitForTimeout(250);
-await page.keyboard.press('Enter'); // dummy: nina
+await page.keyboard.press('Enter'); // dummy pilot
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // dummy: katana
 await page.waitForTimeout(600);
 
 const names = await page.evaluate(() => [

@@ -1,121 +1,132 @@
-// 3D dojo-style stage with left/right walls (wall-splat boundaries).
-// Surfaces use procedural textures + bump maps (wood grain, plaster, woven
-// fabric) so walls/floor catch the lantern light with real depth.
+// 2097 Ganymede arena — metal fight deck between energy barriers, holo ad
+// panels, floodlights, and Jupiter hanging huge in the black sky. Surfaces use
+// procedural metal textures; left/right walls remain the wall-splat boundaries.
 import * as THREE from 'three';
-import { getTextureSet } from './textures.js';
+import { getTextureSet, metalMaterial, jupiterMaterial } from './textures.js';
 
 export const WALL_X = 6.4; // gameplay wall plane
 
-function texturedMat(kind, color, seed, opts = {}) {
-  const { map, bumpMap } = getTextureSet(kind, color, seed);
-  return new THREE.MeshStandardMaterial({
-    map, bumpMap,
-    bumpScale: opts.bumpScale ?? 1.6,
-    roughness: opts.roughness ?? 0.85,
-    metalness: opts.metalness ?? 0,
-    ...(opts.side ? { side: opts.side } : {}),
-    ...(opts.emissive != null ? { emissive: opts.emissive, emissiveIntensity: opts.emissiveIntensity ?? 1 } : {}),
-  });
-}
-
 export function buildStage(scene) {
-  scene.background = new THREE.Color(0x161226);
-  scene.fog = new THREE.Fog(0x161226, 18, 42);
+  scene.background = new THREE.Color(0x05060e);
+  scene.fog = new THREE.Fog(0x05060e, 18, 46);
 
-  // lights
-  const hemi = new THREE.HemisphereLight(0xbfd4ff, 0x3a2b22, 0.85);
+  // lights — cold arena floods + warm accent
+  const hemi = new THREE.HemisphereLight(0x9fb8ff, 0x1a1410, 0.85);
   scene.add(hemi);
-  const key = new THREE.DirectionalLight(0xffeedd, 1.6);
+  const key = new THREE.DirectionalLight(0xeef2ff, 1.7);
   key.position.set(4, 9, 6);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(1024, 1024);
   key.shadow.camera.left = -10; key.shadow.camera.right = 10;
   key.shadow.camera.top = 10; key.shadow.camera.bottom = -3;
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0x7f9dff, 0.7);
+  const rim = new THREE.DirectionalLight(0x6f8dff, 0.8);
   rim.position.set(-5, 6, -6);
   scene.add(rim);
 
-  // floor — wooden planks (two grain seeds so alternating boards read distinct)
+  // fight deck — armored floor plates (two seeds so alternating plates read distinct)
   const floorGroup = new THREE.Group();
-  const plankMatA = texturedMat('wood', 0x8a6642, 101, { roughness: 0.8, bumpScale: 2.0 });
-  const plankMatB = texturedMat('wood', 0x7a5738, 202, { roughness: 0.82, bumpScale: 2.0 });
+  const plateMatA = metalMaterial(0x3a4150, 111, { panels: 2, wear: 0.7, rough: 0.5 });
+  const plateMatB = metalMaterial(0x2e3542, 222, { panels: 2, wear: 0.9, rough: 0.55 });
   for (let i = 0; i < 16; i++) {
-    const plank = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.08, 7.6), i % 2 ? plankMatA : plankMatB);
-    plank.position.set(-7.5 + i, -0.04, 0);
-    plank.receiveShadow = true;
-    floorGroup.add(plank);
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.08, 7.6), i % 2 ? plateMatA : plateMatB);
+    plate.position.set(-7.5 + i, -0.04, 0);
+    plate.receiveShadow = true;
+    floorGroup.add(plate);
   }
   scene.add(floorGroup);
 
-  // center emblem — worn painted circle
+  // center ring — glowing WAR broadcast circle
   const emblem = new THREE.Mesh(
-    new THREE.CircleGeometry(1.4, 40),
-    texturedMat('plaster', 0xa03030, 303, { roughness: 0.75, bumpScale: 1.2 })
+    new THREE.RingGeometry(1.15, 1.4, 48),
+    new THREE.MeshStandardMaterial({ color: 0x0a2a3a, emissive: 0x2fd8ff, emissiveIntensity: 0.9, side: THREE.DoubleSide })
   );
   emblem.rotation.x = -Math.PI / 2;
-  emblem.position.y = 0.005;
-  emblem.receiveShadow = true;
+  emblem.position.y = 0.006;
   scene.add(emblem);
+  const emblemCore = new THREE.Mesh(
+    new THREE.CircleGeometry(1.15, 48),
+    metalMaterial(0x232833, 333, { panels: 3, wear: 0.6, rough: 0.45 })
+  );
+  emblemCore.rotation.x = -Math.PI / 2;
+  emblemCore.position.y = 0.005;
+  emblemCore.receiveShadow = true;
+  scene.add(emblemCore);
 
-  // side walls — cracked plaster with gold trim
-  const wallMat = texturedMat('plaster', 0x4a3b55, 404, { roughness: 0.88, bumpScale: 2.2 });
-  const wallTrim = new THREE.MeshStandardMaterial({ color: 0xd8b56a, roughness: 0.45, metalness: 0.45 });
+  // side walls — armored barriers with hazard stripes + energy trim
+  const wallMat = metalMaterial(0x2a2f3d, 444, { panels: 3, wear: 1.0, rough: 0.5 });
+  const hazardMat = new THREE.MeshStandardMaterial({ color: 0xd8b53a, emissive: 0x9a7410, emissiveIntensity: 0.35, roughness: 0.5, metalness: 0.4 });
   for (const s of [-1, 1]) {
     const wall = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3.6, 7.6), wallMat);
     wall.position.set(s * (WALL_X + 0.45), 1.8, 0);
     wall.castShadow = true; wall.receiveShadow = true;
     scene.add(wall);
-    const trim = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.18, 7.7), wallTrim);
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.28, 7.65), hazardMat);
+    stripe.position.set(s * (WALL_X + 0.45), 0.6, 0);
+    scene.add(stripe);
+    const trim = new THREE.Mesh(
+      new THREE.BoxGeometry(0.6, 0.14, 7.7),
+      new THREE.MeshStandardMaterial({ color: 0x66e0ff, emissive: 0x2fd8ff, emissiveIntensity: 1.2, roughness: 0.3 })
+    );
     trim.position.set(s * (WALL_X + 0.45), 3.5, 0);
     scene.add(trim);
-    // wall lanterns
+    // barrier floodlights (emissive only — point lights are costly on software GL)
     for (const z of [-2.4, 0, 2.4]) {
       const lampBody = new THREE.Mesh(
-        new THREE.BoxGeometry(0.16, 0.42, 0.16),
-        new THREE.MeshStandardMaterial({ color: 0xffdd88, emissive: 0xffa030, emissiveIntensity: 1.4 })
+        new THREE.BoxGeometry(0.14, 0.36, 0.14),
+        new THREE.MeshStandardMaterial({ color: 0xbfe8ff, emissive: 0x8fd0ff, emissiveIntensity: 1.6 })
       );
-      lampBody.position.set(s * (WALL_X + 0.12), 2.4, z);
+      lampBody.position.set(s * (WALL_X + 0.12), 2.5, z);
       scene.add(lampBody);
     }
-    const lampLight = new THREE.PointLight(0xffa860, 6, 8);
-    lampLight.position.set(s * (WALL_X - 0.4), 2.4, 0);
-    scene.add(lampLight);
   }
 
-  // back platform edge + pillars for depth
-  const backMat = texturedMat('plaster', 0x2c2440, 505, { roughness: 0.92, bumpScale: 1.8 });
+  // back gantry — plated wall, support struts, holo ad panels
+  const backMat = metalMaterial(0x1a1e2a, 555, { panels: 4, wear: 0.8, rough: 0.6 });
   const backWall = new THREE.Mesh(new THREE.BoxGeometry(15.4, 4.5, 0.4), backMat);
   backWall.position.set(0, 2.2, -4.0);
   backWall.receiveShadow = true;
   scene.add(backWall);
-  const pillarMat = texturedMat('wood', 0x5a4a35, 606, { roughness: 0.78, bumpScale: 2.0 });
+  const strutMat = metalMaterial(0x3a3f4c, 666, { panels: 2, wear: 0.6, rough: 0.45 });
   for (const x of [-6, -3, 0, 3, 6]) {
-    const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 4.4, 0.4), pillarMat);
-    pillar.position.set(x, 2.2, -3.7);
-    pillar.castShadow = true;
-    scene.add(pillar);
+    const strut = new THREE.Mesh(new THREE.BoxGeometry(0.4, 4.4, 0.4), strutMat);
+    strut.position.set(x, 2.2, -3.7);
+    strut.castShadow = true;
+    scene.add(strut);
   }
-  // hanging banners — woven cloth with fold shading
-  const bannerMat = texturedMat('fabric', 0x8f2038, 707, { roughness: 0.9, bumpScale: 1.0, side: THREE.DoubleSide });
-  for (const x of [-4.5, 1.5]) {
-    const banner = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 2.2), bannerMat);
-    banner.position.set(x, 2.6, -3.45);
-    scene.add(banner);
-  }
-  // front floor edge glow (stage boundary feel)
+  // holo ad panels (fabric-weave texture tinted neon, emissive so they read as screens)
+  const adColors = [[0x8f2038, 0xff3a6a], [0x0f3a5c, 0x2fd8ff]];
+  [-4.5, 1.5].forEach((x, i) => {
+    const { map } = getTextureSet('fabric', adColors[i][0], 707 + i);
+    const panel = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.1, 2.2),
+      new THREE.MeshStandardMaterial({ map, emissive: adColors[i][1], emissiveIntensity: 0.4, roughness: 0.7, side: THREE.DoubleSide })
+    );
+    panel.position.set(x, 2.6, -3.45);
+    scene.add(panel);
+  });
+  // front deck edge — energy boundary strip
   const edge = new THREE.Mesh(
     new THREE.BoxGeometry(15.4, 0.1, 0.15),
-    new THREE.MeshStandardMaterial({ color: 0xd8b56a, emissive: 0x654a10, emissiveIntensity: 0.6 })
+    new THREE.MeshStandardMaterial({ color: 0x66e0ff, emissive: 0x1a9ac0, emissiveIntensity: 0.9 })
   );
   edge.position.set(0, 0.02, 3.85);
   scene.add(edge);
 
-  // faint moon disc in the sky
-  const moon = new THREE.Mesh(
-    new THREE.CircleGeometry(2.2, 40),
-    new THREE.MeshBasicMaterial({ color: 0xcfd8ff, fog: false })
-  );
-  moon.position.set(-8, 11, -26);
-  scene.add(moon);
+  // Jupiter, huge over the Ganymede horizon
+  const jupiter = new THREE.Mesh(new THREE.CircleGeometry(5.2, 48), jupiterMaterial());
+  jupiter.position.set(-13, 9.5, -34);
+  scene.add(jupiter);
+
+  // star field
+  const starGeo = new THREE.BufferGeometry();
+  const starPos = [];
+  let sSeed = 12345;
+  const srnd = () => { sSeed = (sSeed * 16807) % 2147483647; return sSeed / 2147483647; };
+  for (let i = 0; i < 220; i++) {
+    starPos.push((srnd() - 0.5) * 90, 4 + srnd() * 30, -34 - srnd() * 6);
+  }
+  starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+  const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xcfd8ff, size: 0.09, fog: false }));
+  scene.add(stars);
 }

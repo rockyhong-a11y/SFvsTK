@@ -20,13 +20,17 @@ await page.waitForTimeout(600);
 // ===================== 1) char-select shows 6 cards, pick Zangief/Mika =====================
 await page.keyboard.press('Digit2');
 await page.waitForTimeout(300);
-const cardCount = await page.evaluate(() => document.querySelectorAll('.csCard').length);
+const cardCount = await page.evaluate(() => document.querySelectorAll('#csGrid .csCard').length);
 console.log('char cards:', cardCount);
+await page.keyboard.press('Enter'); // P1 pilot
+await page.waitForTimeout(250);
 await page.keyboard.press('KeyD'); await page.keyboard.press('KeyD');
 await page.keyboard.press('KeyD'); await page.keyboard.press('KeyD'); // -> zangief (index 4)
 await page.waitForTimeout(120);
 await page.screenshot({ path: SHOT + '/30-charselect6.png' });
-await page.keyboard.press('Enter'); // P1: zangief
+await page.keyboard.press('Enter'); // P1: zangief(thorn)
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P2 pilot
 await page.waitForTimeout(250);
 await page.keyboard.press('ArrowRight'); // nina -> cammy... move to rmika (index 5): from nina(1)->+4=5
 await page.keyboard.press('ArrowRight');
@@ -102,9 +106,13 @@ console.log('pause overlay opened:', pauseOn, '| selected before confirm:', selL
 // ===================== 6) practice mode =====================
 await page.keyboard.press('Digit3');
 await page.waitForTimeout(300);
-await page.keyboard.press('Enter'); // P1 chunli
+await page.keyboard.press('Enter'); // P1 pilot
 await page.waitForTimeout(250);
-await page.keyboard.press('Enter'); // dummy chunli
+await page.keyboard.press('Enter'); // P1 electra
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // dummy pilot
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // dummy HAR
 await page.waitForTimeout(500);
 const practiceHudOn = await page.evaluate(() => document.getElementById('hud').classList.contains('practice'));
 console.log('practice hud flag:', practiceHudOn);

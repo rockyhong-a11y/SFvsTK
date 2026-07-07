@@ -1,4 +1,6 @@
-// Procedural humanoid rig built from boxes. Built facing +x; root rotation.y flips facing.
+// Procedural HAR (Human Assisted Robot) rig built from boxes — pre-rendered-3D
+// sprite feel: full 3D shading but flattened depth, facing locked to the 2D
+// fight plane. Built facing +x; root rotation.y flips facing.
 // Pose keys (all default 0):
 //   y, x        : root offset (x = forward in facing space)
 //   tl, tw      : torso lean forward(+) / twist
@@ -10,21 +12,12 @@
 //   ry          : whole-body extra yaw (spins)
 //   rz          : whole-body pitch (+ = fall on back), for knockdown/launch
 import * as THREE from 'three';
-import { skinMaterial, leatherMaterial, hairMaterial } from './textures.js';
+import { metalMaterial } from './textures.js';
 
 const POSE_KEYS = ['y','x','tl','tw','sL','sR','sxL','sxR','eL','eR','hL','hR','kL','kR','ry','rz'];
 
-// Per-character leather finish — keeps each fighter's original vibe while all
-// clothes read as leather. grain = pebbling density, creases = wear lines,
-// gloss = roughness (lower = shinier), metal = metalness for hardware sheen.
-const FINISHES = {
-  silk:      { top: { grain: 0.55, creases: 6,  wear: 0.4, gloss: 0.45 }, pants: { grain: 0.55, creases: 6,  wear: 0.4, gloss: 0.45 } }, // fine glossy qipao leather
-  sleek:     { top: { grain: 0.45, creases: 5,  wear: 0.3, gloss: 0.38 }, pants: { grain: 0.45, creases: 5,  wear: 0.3, gloss: 0.38 } }, // polished catsuit
-  military:  { top: { grain: 1.3,  creases: 16, wear: 0.7, gloss: 0.7  }, pants: { grain: 1.3,  creases: 16, wear: 0.7, gloss: 0.7  } }, // matte field gear
-  sturdy:    { top: { grain: 1.0,  creases: 10, wear: 0.5, gloss: 0.6  }, pants: { grain: 1.0,  creases: 10, wear: 0.5, gloss: 0.6  } }, // dogi-weight hide
-  rugged:    { top: { grain: 1.7,  creases: 22, wear: 1.0, gloss: 0.75 }, pants: { grain: 1.7,  creases: 22, wear: 1.0, gloss: 0.75 } }, // battle-worn rawhide
-  spotlight: { top: { grain: 0.4,  creases: 4,  wear: 0.3, gloss: 0.3  }, pants: { grain: 0.4,  creases: 4,  wear: 0.3, gloss: 0.3  } }, // shiny ring gear
-};
+// Per-HAR armor wear — rugged units carry more scratches/scorch marks
+const ARMOR_WEAR = { sleek: 0.25, military: 0.7, sturdy: 0.5, rugged: 1.0, spotlight: 0.2, silk: 0.3 };
 
 export function lerpPose(a, b, t) {
   const out = {};
@@ -56,24 +49,30 @@ function box(w, h, d, mat) {
 }
 
 export function buildRig(cfg) {
-  // seed derived from the outfit palette → every character gets their own
-  // stable grain/crease pattern even with the same finish preset
+  // seed derived from the armor palette → every HAR gets its own stable panel
+  // seam/scratch pattern even when finishes match
   const seed = ((cfg.top ^ (cfg.pants << 1) ^ (cfg.accent << 2)) >>> 0) % 100000;
-  const finish = FINISHES[cfg.finish] || FINISHES.sturdy;
+  const wear = ARMOR_WEAR[cfg.finish] ?? 0.5;
   const mats = {
-    skin: skinMaterial(cfg.skin, seed + 11),
-    top: leatherMaterial(cfg.top, seed + 23, finish.top),
-    pants: leatherMaterial(cfg.pants, seed + 37, finish.pants),
-    glove: leatherMaterial(cfg.glove, seed + 41, { grain: 0.7, creases: 8, wear: 0.6, gloss: 0.42 }), // polished gloves/boots
-    hair: hairMaterial(cfg.hair, seed + 53),
-    accent: leatherMaterial(cfg.accent, seed + 67, { grain: 0.4, creases: 3, wear: 0.3, gloss: 0.3, metal: 0.35 }), // patent trim
+    skin: metalMaterial(cfg.skin, seed + 11, { panels: 2, wear, z: 0.55 }),                    // head/limb secondary alloy
+    top: metalMaterial(cfg.top, seed + 23, { panels: 3, wear, z: 0.5 }),                       // chest plating
+    pants: metalMaterial(cfg.pants, seed + 37, { panels: 3, wear, z: 0.5 }),                   // leg plating
+    glove: metalMaterial(cfg.glove, seed + 41, { panels: 2, wear: wear * 0.6, rough: 0.3, z: 0.6 }), // actuator fists/feet
+    hair: metalMaterial(cfg.hair, seed + 53, { panels: 2, wear: 0.3, z: 0.6 }),                // sensor crest
+    accent: metalMaterial(cfg.accent, seed + 67, { panels: 1, wear: 0.2, rough: 0.25, z: 0.7 }), // trim hardware
   };
   const materials = Object.values(mats);
+  // glowing visor/reactor core — kept OUT of `materials` so setFlash (which
+  // overwrites emissive every frame) never kills the glow
+  const glowMat = new THREE.MeshStandardMaterial({
+    color: cfg.accent, emissive: cfg.accent, emissiveIntensity: 1.5, roughness: 0.35, metalness: 0.2,
+  });
 
   const root = new THREE.Group();
   const spin = new THREE.Group(); // for ry spins
   root.add(spin);
   if (cfg.scale) spin.scale.setScalar(cfg.scale);
+  spin.scale.z *= 0.78; // pre-rendered-sprite feel: flatten depth so HARs read 2D
 
   const pelvis = new THREE.Group();
   pelvis.position.y = 0.95;
@@ -91,6 +90,9 @@ export function buildRig(cfg) {
   const torsoMesh = box(0.3, 0.52, 0.38, mats.top);
   torsoMesh.position.y = 0.3;
   torso.add(torsoMesh);
+  const core = box(0.04, 0.1, 0.1, glowMat); // reactor core light
+  core.position.set(0.15, 0.32, 0);
+  torso.add(core);
   if (cfg.skirt) {
     // qipao side-slit panels (front & back in facing space)
     for (const s of [-1, 1]) {
@@ -106,6 +108,9 @@ export function buildRig(cfg) {
   const headMesh = box(0.24, 0.26, 0.22, mats.skin);
   headMesh.position.y = 0.13;
   head.add(headMesh);
+  const visor = box(0.04, 0.08, 0.19, glowMat); // mono-eye sensor visor
+  visor.position.set(0.115, 0.16, 0);
+  head.add(visor);
   const hairMesh = box(0.26, 0.12, 0.24, mats.hair);
   hairMesh.position.set(-0.02, 0.26, 0);
   head.add(hairMesh);

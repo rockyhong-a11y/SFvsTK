@@ -236,14 +236,14 @@ function superArt(name, limbs, anim, opts = {}) {
 // ============================================================
 const CHUNLI = {
   id: 'chunli',
-  displayName: 'CHUN-LI',
-  nameKo: '춘리',
+  displayName: 'ELECTRA',
+  nameKo: '일렉트라',
   health: 1000,
   walkF: 2.5, walkB: 1.9,
   jumpVy: 7.2,
   rig: {
-    skin: 0xf2c9a0, top: 0x1d4fd7, pants: 0x1d4fd7, glove: 0xf5f0e6,
-    hair: 0x241a12, accent: 0xe8b83a, hairstyle: 'buns', skirt: true, bracelets: true, finish: 'silk',
+    skin: 0x9fb4d8, top: 0x1d4fd7, pants: 0x16337a, glove: 0xd8e0f0,
+    hair: 0xc8d2e8, accent: 0x66e0ff, hairstyle: 'buns', skirt: true, bracelets: true, finish: 'sleek',
   },
   moves: {
     punch: {
@@ -293,7 +293,7 @@ const CHUNLI = {
       catchT: 0.14, liftT: 0.32, damage: 110, range: 1.0, kb: 5.5, kbUp: 4.5,
     }),
     skillN: {
-      name: '기공권', startup: 0.24, active: 0.02, recovery: 0.38, isSkill: true,
+      name: '일렉트릭 샤드', startup: 0.24, active: 0.02, recovery: 0.38, isSkill: true,
       damage: 0, level: 'sm', sound: 'fireball',
       proj: { kind: 'fireball', speed: 7.2, damage: 60, level: 'sm', hitstun: 0.42, blockstun: 0.3, kb: 3.0, chip: 0.15, color: 0x66aaff, y: 1.15, radius: 0.3 },
       anim: [
@@ -305,7 +305,7 @@ const CHUNLI = {
       ],
     },
     skillF: {
-      name: '천승각', startup: 0.07, active: 0.32, recovery: 0.5, isSkill: true,
+      name: '라이징 볼트', startup: 0.07, active: 0.32, recovery: 0.5, isSkill: true,
       damage: 100, level: 'mid', hitstun: 0.5, blockstun: 0.3, kb: 1.5, kbUp: 8.5,
       limbs: ['footR'], radius: 0.36, invuln: [0, 0.2], selfVy: 7.5, fwdSpeed: 1.5,
       chip: 0.15, sound: 'whoosh', afterimage: true, landingLag: true,
@@ -317,7 +317,7 @@ const CHUNLI = {
       ],
     },
     skillB: {
-      name: '백열각', startup: 0.14, active: 0.48, recovery: 0.34, isSkill: true,
+      name: '롤링 썬더', startup: 0.14, active: 0.48, recovery: 0.34, isSkill: true,
       damage: 22, level: 'mid', hitstun: 0.22, blockstun: 0.16, kb: 0.8,
       hits: 4, hitInterval: 0.12,
       lastHit: { kb: 5.5, kbUp: 3.2, knockdown: true, hitstun: 0.6 },
@@ -334,7 +334,7 @@ const CHUNLI = {
       ],
     },
     skillD: {
-      name: '회전각', startup: 0.18, active: 0.09, recovery: 0.42, isSkill: true, crouching: true,
+      name: '볼트 스윕', startup: 0.18, active: 0.09, recovery: 0.42, isSkill: true, crouching: true,
       damage: 60, level: 'low', hitstun: 0.6, blockstun: 0.26, kb: 3.0, knockdown: true,
       limbs: ['footR'], radius: 0.34, chip: 0.1, sound: 'whoosh',
       anim: [
@@ -346,7 +346,7 @@ const CHUNLI = {
         [1, ST],
       ],
     },
-    superN: superArt('봉익선', ['footR', 'footL'], [
+    superN: superArt('썬더 스톰', ['footR', 'footL'], [
       [0, ST],
       [0.18, { ...ST, y: -0.16, tl: 0.25, sxL: 0.5, sxR: 0.5 }],
       [0.3, { ...ST, tl: -0.1, hR: 1.6, kR: -0.05, sxL: 0.5, sxR: 0.5 }],
@@ -366,14 +366,14 @@ attachCommandNormals(CHUNLI);
 // ============================================================
 const NINA = {
   id: 'nina',
-  displayName: 'NINA',
-  nameKo: '니나',
+  displayName: 'KATANA',
+  nameKo: '카타나',
   health: 1000,
   walkF: 2.3, walkB: 1.8,
   jumpVy: 7.0,
   rig: {
-    skin: 0xf5d3b3, top: 0x6a2f8f, pants: 0x5a2680, glove: 0x2a1a35,
-    hair: 0xe8c96a, accent: 0xb98fd6, hairstyle: 'ponytail', sleeves: true, finish: 'sleek',
+    skin: 0xb9bec9, top: 0x6a2f8f, pants: 0x3d1d5c, glove: 0x2a2438,
+    hair: 0xd8dce4, accent: 0xff4bd8, hairstyle: 'ponytail', sleeves: true, finish: 'sleek',
   },
   moves: {
     punch: {
@@ -421,7 +421,7 @@ const NINA = {
       catchT: 0.14, liftT: 0.32, damage: 125, range: 1.0, kb: 6.0, kbUp: 4.0,
     }),
     skillN: {
-      name: '블론드 밤', startup: 0.2, active: 0.08, recovery: 0.44, isSkill: true,
+      name: '소닉 슬래시', startup: 0.2, active: 0.08, recovery: 0.44, isSkill: true,
       damage: 85, level: 'mid', hitstun: 0.55, blockstun: 0.32, kb: 10.0, knockdown: true,
       limbs: ['fistL', 'fistR'], radius: 0.38, fwdSpeed: 2.2, fwdWindow: [0, 0.28],
       chip: 0.15, sound: 'whoosh', afterimage: true,
@@ -434,7 +434,7 @@ const NINA = {
       ],
     },
     skillF: {
-      name: '디바인 캐논', startup: 0.13, active: 0.07, recovery: 0.4, isSkill: true,
+      name: '라이징 블레이드', startup: 0.13, active: 0.07, recovery: 0.4, isSkill: true,
       damage: 88, level: 'mid', hitstun: 0.5, blockstun: 0.28, kb: 2.0, kbUp: 9.0,
       limbs: ['footR'], radius: 0.36, fwdSpeed: 2.5, fwdWindow: [0, 0.2],
       chip: 0.15, sound: 'whoosh', afterimage: true,
@@ -447,7 +447,7 @@ const NINA = {
       ],
     },
     skillB: {
-      name: '아이보리 커터', startup: 0.16, active: 0.1, recovery: 0.4, isSkill: true,
+      name: '스핀 커터', startup: 0.16, active: 0.1, recovery: 0.4, isSkill: true,
       damage: 75, level: 'mid', hitstun: 0.5, blockstun: 0.26, kb: 2.5, kbUp: 7.5,
       limbs: ['footL'], radius: 0.36, invuln: [0, 0.18],
       fwdSpeed: -2.8, fwdWindow: [0, 0.3], selfHop: 3.5,
@@ -461,7 +461,7 @@ const NINA = {
       ],
     },
     skillD: {
-      name: '스위핑 로우', startup: 0.2, active: 0.1, recovery: 0.45, isSkill: true, crouching: true,
+      name: '로우 슬라이서', startup: 0.2, active: 0.1, recovery: 0.45, isSkill: true, crouching: true,
       damage: 68, level: 'low', hitstun: 0.6, blockstun: 0.28, kb: 3.2, knockdown: true,
       limbs: ['footR'], radius: 0.34, fwdSpeed: 1.8, fwdWindow: [0, 0.3],
       chip: 0.1, sound: 'whoosh',
@@ -474,7 +474,7 @@ const NINA = {
         [1, ST],
       ],
     },
-    superN: superArt('사일런트 어썰트', ['fistL', 'fistR'], [
+    superN: superArt('트리플 블레이드', ['fistL', 'fistR'], [
       [0, ST],
       [0.18, { ...ST, y: -0.15, tl: 0.2, tw: -0.7, sL: -0.5, eL: 1.2, sR: -0.4, eR: 1.1 }],
       [0.3, { y: -0.08, tl: 0.2, tw: 0.35, sL: 1.55, eL: 0.1, sR: 0.3, eR: 1.7, hL: 0.4, kL: -0.6 }],
@@ -494,14 +494,14 @@ attachCommandNormals(NINA);
 // ============================================================
 const CAMMY = {
   id: 'cammy',
-  displayName: 'CAMMY',
-  nameKo: '캐미',
+  displayName: 'JAGUAR',
+  nameKo: '재규어',
   health: 950,
   walkF: 2.75, walkB: 2.0,
   jumpVy: 7.5,
   rig: {
-    skin: 0xf2c9a0, top: 0x2e8b3a, pants: 0xf2c9a0, glove: 0xc03030,
-    hair: 0xe8c96a, accent: 0xc03030, hairstyle: 'braids', beret: true, finish: 'military',
+    skin: 0xa8b8a0, top: 0x2e8b3a, pants: 0x1c5426, glove: 0xc03030,
+    hair: 0xc8b840, accent: 0xffe14b, hairstyle: 'braids', beret: true, finish: 'military',
   },
   moves: {
     punch: {
@@ -549,7 +549,7 @@ const CAMMY = {
       catchT: 0.14, liftT: 0.32, damage: 115, range: 1.0, kb: 6.5, kbUp: 5.0,
     }),
     skillN: {
-      name: '스핀 너클', startup: 0.26, active: 0.08, recovery: 0.42, isSkill: true,
+      name: '컨커션 캐논', startup: 0.26, active: 0.08, recovery: 0.42, isSkill: true,
       damage: 78, level: 'mid', hitstun: 0.6, blockstun: 0.3, kb: 1.2, crumple: true,
       limbs: ['fistR'], radius: 0.36, fwdSpeed: 2.8, fwdWindow: [0.05, 0.34],
       chip: 0.12, sound: 'whoosh', afterimage: true,
@@ -562,7 +562,7 @@ const CAMMY = {
       ],
     },
     skillF: {
-      name: '캐논 스파이크', startup: 0.08, active: 0.3, recovery: 0.5, isSkill: true,
+      name: '재규어 어퍼', startup: 0.08, active: 0.3, recovery: 0.5, isSkill: true,
       damage: 95, level: 'mid', hitstun: 0.5, blockstun: 0.3, kb: 1.8, kbUp: 8.2,
       limbs: ['footR'], radius: 0.36, invuln: [0, 0.2], selfVy: 7.8, fwdSpeed: 1.2,
       chip: 0.15, sound: 'whoosh', afterimage: true, landingLag: true,
@@ -574,7 +574,7 @@ const CAMMY = {
       ],
     },
     skillB: {
-      name: '스파이럴 애로우', startup: 0.17, active: 0.3, recovery: 0.4, isSkill: true,
+      name: '재규어 리프', startup: 0.17, active: 0.3, recovery: 0.4, isSkill: true,
       damage: 90, level: 'mid', hitstun: 0.55, blockstun: 0.28, kb: 6.0, knockdown: true,
       limbs: ['footR', 'footL'], radius: 0.36, fwdSpeed: 6.0, fwdWindow: [0.17, 0.47],
       chip: 0.15, sound: 'whoosh', afterimage: true,
@@ -588,7 +588,7 @@ const CAMMY = {
       ],
     },
     skillD: {
-      name: '슬라이딩', startup: 0.19, active: 0.12, recovery: 0.45, isSkill: true, crouching: true,
+      name: '로우 파운스', startup: 0.19, active: 0.12, recovery: 0.45, isSkill: true, crouching: true,
       damage: 60, level: 'low', hitstun: 0.55, blockstun: 0.26, kb: 3.0, knockdown: true,
       limbs: ['footR'], radius: 0.34, fwdSpeed: 3.5, fwdWindow: [0.05, 0.31],
       chip: 0.1, sound: 'whoosh',
@@ -600,7 +600,7 @@ const CAMMY = {
         [1, ST],
       ],
     },
-    superN: superArt('스핀 드라이브 스매셔', ['footR', 'footL'], [
+    superN: superArt('오버드라이브 리프', ['footR', 'footL'], [
       [0, ST],
       [0.18, { ...ST, y: -0.22, tl: 0.4 }],
       [0.3, { y: -0.45, rz: 1.25, sL: -0.8, eL: 0.4, sR: -0.8, eR: 0.4, hL: 0.1, kL: -0.1, hR: 0, kR: -0.05, ry: 1.5 }],
@@ -618,14 +618,14 @@ attachCommandNormals(CAMMY);
 // ============================================================
 const ASUKA = {
   id: 'asuka',
-  displayName: 'ASUKA',
-  nameKo: '아스카',
+  displayName: 'SHADOW',
+  nameKo: '섀도우',
   health: 1050,
   walkF: 2.2, walkB: 1.75,
   jumpVy: 6.9,
   rig: {
-    skin: 0xf2cba6, top: 0x3f6fd0, pants: 0xf3f3f0, glove: 0xd6e4ff,
-    hair: 0x33261e, accent: 0xd04a20, hairstyle: 'short', sleeves: false, finish: 'sturdy',
+    skin: 0x6a7086, top: 0x3a3f52, pants: 0x23283a, glove: 0x9db7ff,
+    hair: 0x8a93b0, accent: 0x9db7ff, hairstyle: 'short', sleeves: false, finish: 'sturdy',
   },
   moves: {
     punch: {
@@ -674,7 +674,7 @@ const ASUKA = {
     }),
     // 반격기: catches high/mid strikes during the window, then auto-counters.
     skillN: {
-      name: '백로 반격', startup: 0.06, active: 0.42, recovery: 0.5, isSkill: true,
+      name: '팬텀 트랩', startup: 0.06, active: 0.42, recovery: 0.5, isSkill: true,
       parry: true, counterDamage: 95,
       damage: 0, level: 'mid', hitstun: 0, blockstun: 0, kb: 0,
       limbs: [], radius: 0, sound: 'whoosh',
@@ -697,7 +697,7 @@ const ASUKA = {
       ],
     },
     skillF: {
-      name: '귀신무', startup: 0.14, active: 0.07, recovery: 0.42, isSkill: true,
+      name: '섀도우 라이즈', startup: 0.14, active: 0.07, recovery: 0.42, isSkill: true,
       damage: 92, level: 'mid', hitstun: 0.5, blockstun: 0.28, kb: 1.8, kbUp: 8.8,
       limbs: ['footL'], radius: 0.36, fwdSpeed: 2.0, fwdWindow: [0, 0.21],
       chip: 0.15, sound: 'whoosh', afterimage: true,
@@ -710,7 +710,7 @@ const ASUKA = {
       ],
     },
     skillB: {
-      name: '선풍연각', startup: 0.16, active: 0.36, recovery: 0.38, isSkill: true,
+      name: '트윈 팬텀', startup: 0.16, active: 0.36, recovery: 0.38, isSkill: true,
       damage: 45, level: 'mid', hitstun: 0.26, blockstun: 0.18, kb: 1.0,
       hits: 2, hitInterval: 0.17,
       lastHit: { kb: 6.0, kbUp: 3.0, knockdown: true, hitstun: 0.6 },
@@ -725,7 +725,7 @@ const ASUKA = {
       ],
     },
     skillD: {
-      name: '낙엽쓸기', startup: 0.22, active: 0.1, recovery: 0.46, isSkill: true, crouching: true,
+      name: '섀도우 스윕', startup: 0.22, active: 0.1, recovery: 0.46, isSkill: true, crouching: true,
       damage: 72, level: 'low', hitstun: 0.6, blockstun: 0.28, kb: 3.2, knockdown: true,
       limbs: ['footR'], radius: 0.34, fwdSpeed: 1.4, fwdWindow: [0, 0.32],
       chip: 0.1, sound: 'whoosh',
@@ -738,7 +738,7 @@ const ASUKA = {
         [1, ST],
       ],
     },
-    superN: superArt('귀신 연무', ['fistL', 'footR'], [
+    superN: superArt('팬텀 러시', ['fistL', 'footR'], [
       [0, ST],
       [0.18, { ...ST, y: -0.15, tl: 0.2, tw: -0.6, sL: -0.5, eL: 1.2 }],
       [0.3, { y: -0.08, tl: 0.2, tw: 0.35, sL: 1.55, eL: 0.1, sR: 0.3, eR: 1.7, hL: 0.4, kL: -0.6 }],
@@ -758,14 +758,14 @@ attachCommandNormals(ASUKA);
 // ============================================================
 const ZANGIEF = {
   id: 'zangief',
-  displayName: 'ZANGIEF',
-  nameKo: '장기에프',
+  displayName: 'THORN',
+  nameKo: '쏜',
   health: 1200,
   walkF: 1.9, walkB: 1.5,
   jumpVy: 6.3,
   rig: {
-    skin: 0xe8b48a, top: 0xb31d1d, pants: 0x1a1a1a, glove: 0x7a2a1a,
-    hair: 0x2a2a2a, accent: 0xd8b53a, sleeves: false, scale: 1.17, finish: 'rugged',
+    skin: 0x8a8378, top: 0xb31d1d, pants: 0x2a2a2a, glove: 0x4a4a4a,
+    hair: 0x5a5a5a, accent: 0xffa030, sleeves: false, scale: 1.17, finish: 'rugged',
   },
   moves: {
     punch: {
@@ -814,12 +814,12 @@ const ZANGIEF = {
     }),
     // 커맨드 그랩: 장기에프의 시그니처 스크류 파일드라이버.
     skillN: throwMove({
-      name: '스크류 파일드라이버', style: 'piledriver', isCommandThrow: true,
+      name: '스파이크 크러시', style: 'piledriver', isCommandThrow: true,
       startup: 0.2, active: 0.09, recovery: 0.55,
       catchT: 0.18, liftT: 0.42, damage: 175, range: 1.2, knockdown: true,
     }),
     skillF: {
-      name: '배니싱 플랫', startup: 0.22, active: 0.1, recovery: 0.4, isSkill: true,
+      name: '스파이크 샷', startup: 0.22, active: 0.1, recovery: 0.4, isSkill: true,
       damage: 70, level: 'mid', hitstun: 0.4, blockstun: 0.26, kb: 3.0,
       limbs: ['fistR'], radius: 0.36, fwdSpeed: 2.0, fwdWindow: [0, 0.28],
       chip: 0.12, sound: 'whoosh',
@@ -832,7 +832,7 @@ const ZANGIEF = {
       ],
     },
     skillB: {
-      name: '더블 라리아트', startup: 0.18, active: 0.4, recovery: 0.38, isSkill: true,
+      name: '쏜 스핀', startup: 0.18, active: 0.4, recovery: 0.38, isSkill: true,
       damage: 32, level: 'mid', hitstun: 0.24, blockstun: 0.17, kb: 1.2,
       hits: 2, hitInterval: 0.18,
       lastHit: { kb: 5.0, kbUp: 3.0, knockdown: true, hitstun: 0.55 },
@@ -847,7 +847,7 @@ const ZANGIEF = {
       ],
     },
     skillD: {
-      name: '더블 니 프레스', startup: 0.2, active: 0.1, recovery: 0.42, isSkill: true, crouching: true,
+      name: '스파이크 니', startup: 0.2, active: 0.1, recovery: 0.42, isSkill: true, crouching: true,
       damage: 55, level: 'low', hitstun: 0.5, blockstun: 0.26, kb: 2.5, knockdown: true,
       limbs: ['footR'], radius: 0.32, fwdSpeed: 0.8, fwdWindow: [0, 0.28],
       chip: 0.1, sound: 'whoosh',
@@ -859,7 +859,7 @@ const ZANGIEF = {
         [1, ST],
       ],
     },
-    superN: superArt('레드 사이클론', ['fistL', 'fistR'], [
+    superN: superArt('임팩트 크러셔', ['fistL', 'fistR'], [
       [0, ST],
       [0.18, { ...ST, tw: -0.3, sL: 1.4, eL: 0.2, sR: 1.4, eR: 0.2, sxL: 0.6, sxR: 0.6 }],
       [0.3, { ...ST, tw: 1.5, sL: 1.4, eL: 0.2, sR: 1.4, eR: 0.2, sxL: 0.6, sxR: 0.6, ry: 2.5 }],
@@ -878,14 +878,14 @@ attachCommandNormals(ZANGIEF);
 // ============================================================
 const RMIKA = {
   id: 'rmika',
-  displayName: 'R. MIKA',
-  nameKo: 'R. 미카',
+  displayName: 'PYROS',
+  nameKo: '파이로스',
   health: 1020,
   walkF: 2.35, walkB: 1.85,
   jumpVy: 6.8,
   rig: {
-    skin: 0xf2c9a0, top: 0xe83f8f, pants: 0xffffff, glove: 0xffffff,
-    hair: 0xe8c96a, accent: 0xffd93d, hairstyle: 'buns', sleeves: false, finish: 'spotlight',
+    skin: 0xb89078, top: 0xe8792a, pants: 0x8f2038, glove: 0x402020,
+    hair: 0xd8b53a, accent: 0xffd93d, hairstyle: 'buns', sleeves: false, finish: 'spotlight',
   },
   moves: {
     punch: {
@@ -934,12 +934,12 @@ const RMIKA = {
     }),
     // 커맨드 그랩: 미카의 시그니처 수플렉스.
     skillN: throwMove({
-      name: '슈팅 피치 수플렉스', style: 'suplex', isCommandThrow: true,
+      name: '인페르노 드라이버', style: 'suplex', isCommandThrow: true,
       startup: 0.19, active: 0.08, recovery: 0.5,
       catchT: 0.16, liftT: 0.4, damage: 160, range: 1.15, kb: 1.0, knockdown: true,
     }),
     skillF: {
-      name: '러닝 바디 프레스', startup: 0.16, active: 0.14, recovery: 0.4, isSkill: true,
+      name: '플레임 대시', startup: 0.16, active: 0.14, recovery: 0.4, isSkill: true,
       damage: 68, level: 'mid', hitstun: 0.42, blockstun: 0.26, kb: 3.4,
       limbs: ['fistL', 'fistR'], radius: 0.4, fwdSpeed: 3.4, fwdWindow: [0, 0.3],
       chip: 0.13, sound: 'whoosh', afterimage: true,
@@ -952,7 +952,7 @@ const RMIKA = {
       ],
     },
     skillB: {
-      name: '피치 캔 캔', startup: 0.15, active: 0.36, recovery: 0.36, isSkill: true,
+      name: '트윈 버너', startup: 0.15, active: 0.36, recovery: 0.36, isSkill: true,
       damage: 28, level: 'mid', hitstun: 0.24, blockstun: 0.17, kb: 1.0,
       hits: 2, hitInterval: 0.16,
       lastHit: { kb: 5.0, kbUp: 3.0, knockdown: true, hitstun: 0.55 },
@@ -967,7 +967,7 @@ const RMIKA = {
       ],
     },
     skillD: {
-      name: '로우 슬라이드', startup: 0.18, active: 0.11, recovery: 0.44, isSkill: true, crouching: true,
+      name: '번 슬라이드', startup: 0.18, active: 0.11, recovery: 0.44, isSkill: true, crouching: true,
       damage: 58, level: 'low', hitstun: 0.55, blockstun: 0.26, kb: 3.0, knockdown: true,
       limbs: ['footR'], radius: 0.34, fwdSpeed: 3.0, fwdWindow: [0.05, 0.3],
       chip: 0.1, sound: 'whoosh',
@@ -979,7 +979,7 @@ const RMIKA = {
         [1, ST],
       ],
     },
-    superN: superArt('미카 익스프레스', ['fistL', 'footR'], [
+    superN: superArt('슈퍼 노바', ['fistL', 'footR'], [
       [0, ST],
       [0.18, { ...ST, y: -0.15, tl: 0.2, tw: -0.6, sL: -0.5, eL: 1.2 }],
       [0.3, { y: -0.08, tl: 0.2, tw: 0.35, sL: 1.55, eL: 0.1, sR: 0.3, eR: 1.7, hL: 0.4, kL: -0.6 }],
@@ -995,6 +995,22 @@ const RMIKA = {
 attachCommandNormals(RMIKA);
 
 
+// ============================================================
+// PILOTS — the human side of the pilot+HAR combo. Stats multiply the HAR's
+// base performance: power → damage, agility → mobility, endurance → armor HP.
+// ============================================================
+export const PILOTS = [
+  { id: 'crystal',   name: '크리스탈', en: 'CRYSTAL',   power: 1.00, agility: 1.08, endurance: 1.00, blurb: '실종된 부모의 행방을 쫓아 링에 오른 수석 훈련생' },
+  { id: 'steffan',   name: '스테판',   en: 'STEFFAN',   power: 1.15, agility: 0.92, endurance: 1.05, blurb: '한 방의 무게를 믿는 전직 중장비 테스트 파일럿' },
+  { id: 'milano',    name: '밀라노',   en: 'MILANO',    power: 0.90, agility: 1.18, endurance: 0.95, blurb: '속도광. 제로G 레이스 3연패 후 격투로 전향' },
+  { id: 'christian', name: '크리스천', en: 'CHRISTIAN', power: 1.08, agility: 1.00, endurance: 0.95, blurb: '우승 상금으로 빚을 갚아야 하는 냉정한 승부사' },
+  { id: 'shirro',    name: '시로',     en: 'SHIRRO',    power: 0.95, agility: 0.92, endurance: 1.22, blurb: '버티는 싸움의 달인. 은퇴한 궤도 구조대원' },
+  { id: 'angel',     name: '엔젤',     en: 'ANGEL',     power: 1.00, agility: 1.12, endurance: 0.90, blurb: '정체를 숨긴 기업 스파이. 데이터가 목적이다' },
+];
+
+// 최종 보스 전용 파일럿 — 선택 불가
+export const BOSS_PILOT = { id: 'kreissack', name: '크라이색', en: 'KREISSACK', power: 1.18, agility: 1.0, endurance: 1.28, blurb: 'WAR 총수. 프로토타입 노바의 유일한 파일럿' };
+
 export const CHARACTERS = {
   chunli: CHUNLI,
   nina: NINA,
@@ -1002,4 +1018,17 @@ export const CHARACTERS = {
   asuka: ASUKA,
   zangief: ZANGIEF,
   rmika: RMIKA,
+};
+
+// 최종 보스 HAR — 토너먼트 전용, 로스터에는 포함되지 않는다
+export const NOVA = {
+  ...ZANGIEF,
+  id: 'nova',
+  displayName: 'NOVA',
+  nameKo: '노바',
+  health: 1250,
+  rig: {
+    skin: 0x3a3a42, top: 0x1c1c22, pants: 0x5c0f0f, glove: 0x333333,
+    hair: 0x2a2a30, accent: 0xff2020, sleeves: false, scale: 1.28, finish: 'rugged',
+  },
 };

@@ -15,6 +15,10 @@ await page.screenshot({ path: process.env.SHOT_DIR + '/01-title.png' });
 // start VS CPU: mode select -> char select (P1 confirm, CPU auto-picks)
 await page.keyboard.press('Digit1');
 await page.waitForTimeout(400);
+await page.keyboard.press('Enter'); // skip story intro
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P1 pilot
+await page.waitForTimeout(250);
 await page.keyboard.press('Enter');
 await page.waitForTimeout(2300); // cpu pick + round intro -> FIGHT
 await page.screenshot({ path: process.env.SHOT_DIR + '/02-fight-start.png' });

@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>SF vs TK — Fighting Prototype (Standalone)</title>
+<title>HAR ARENA 2097 — OMF 오마주 프로토타입</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥋</text></svg>">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -251,6 +251,19 @@
   .csCard.selP1 .csTag.t1 { visibility: visible; background: #1c5dbb; color: #fff; }
   .csCard.selP2 .csTag.t2 { visibility: visible; background: #b3303c; color: #fff; }
   #csHint { margin-top: 36px; font-size: 13px; color: #9a8fc0; line-height: 1.9; }
+  #pilotGrid { display: flex; gap: 13px; flex-wrap: wrap; justify-content: center; max-width: 1080px; }
+  #storyScreen h2 { font-size: 26px; color: #ffe8a0; letter-spacing: 2px; margin-bottom: 26px; }
+  #storyScreen p#storyText { max-width: 640px; font-size: 15px; line-height: 2.1; color: #cfc8e8; white-space: pre-line; text-align: center; }
+  .storyHint { margin-top: 34px; font-size: 12px; color: #9a8fc0; }
+  #shopScreen h2 { font-size: 24px; color: #ffe8a0; letter-spacing: 2px; margin-bottom: 10px; }
+  #shopCredits { font-size: 15px; color: #7fd0ff; margin-bottom: 22px; }
+  #shopList { display: flex; flex-direction: column; gap: 8px; min-width: 460px; }
+  .shopItem { padding: 9px 18px; border: 1px solid #4a3f66; border-radius: 8px; color: #cfc8e8;
+    font-size: 14px; display: flex; justify-content: space-between; gap: 24px; }
+  .shopItem.sel { border-color: #ffb300; background: rgba(255,140,0,.15); color: #fff; }
+  .shopItem .lv { color: #7fd0ff; }
+  .shopItem .cost { color: #ffd34a; }
+  .shopItem.max .cost { color: #6a6484; }
 
   #pauseOverlay {
     position: absolute; inset: 0; display: none; z-index: 9;
@@ -343,9 +356,9 @@
   </div>
 
   <div class="screen on" id="title">
-    <h1>SF <span>vs</span> TK</h1>
-    <h2>STREET FIGHTER × TEKKEN — 3D BATTLE PROTOTYPE</h2>
-    <div class="menuOpt" data-mode="cpu">1인 대전 (VS CPU)</div>
+    <h1>HAR <span>ARENA</span> 2097</h1>
+    <h2>ONE MUST FALL 오마주 — 파일럿 × 로봇 2D 격투 프로토타입</h2>
+    <div class="menuOpt" data-mode="cpu">토너먼트 (스토리)</div>
     <div class="menuOpt" data-mode="2p">2인 대전 (VS 2P)</div>
     <div class="menuOpt" data-mode="practice">연습장 (PRACTICE)</div>
     <div class="hintLine">
@@ -359,34 +372,61 @@
   </div>
 
   <div class="screen" id="charselect">
-    <h2 id="csTitle">P1 — 캐릭터 선택</h2>
+    <h2 id="csTitle">P1 — 파일럿 선택</h2>
+    <div id="pilotGrid">
+      <div class="csCard pilotCard" data-pilot="crystal" style="--c1:#4a9ad8;--c2:#12324e">
+        <div class="csSwatch"></div><b>크리스탈</b><span>CRYSTAL<br>파워 ●●○ · 민첩 ●●● · 내구 ●●○</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard pilotCard" data-pilot="steffan" style="--c1:#c8542a;--c2:#4e1c12">
+        <div class="csSwatch"></div><b>스테판</b><span>STEFFAN<br>파워 ●●● · 민첩 ●○○ · 내구 ●●●</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard pilotCard" data-pilot="milano" style="--c1:#3ab86a;--c2:#124e28">
+        <div class="csSwatch"></div><b>밀라노</b><span>MILANO<br>파워 ●○○ · 민첩 ●●● · 내구 ●●○</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard pilotCard" data-pilot="christian" style="--c1:#b8a03a;--c2:#4e4212">
+        <div class="csSwatch"></div><b>크리스천</b><span>CHRISTIAN<br>파워 ●●● · 민첩 ●●○ · 내구 ●●○</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard pilotCard" data-pilot="shirro" style="--c1:#8a8f9c;--c2:#33363e">
+        <div class="csSwatch"></div><b>시로</b><span>SHIRRO<br>파워 ●●○ · 민첩 ●○○ · 내구 ●●●</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard pilotCard" data-pilot="angel" style="--c1:#b84ad8;--c2:#3e124e">
+        <div class="csSwatch"></div><b>엔젤</b><span>ANGEL<br>파워 ●●○ · 민첩 ●●● · 내구 ●○○</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+    </div>
     <div id="csGrid">
       <div class="csCard" data-char="chunli" style="--c1:#2d63e8;--c2:#12275e;--cSkin:#f2c9a0">
-        <div class="csSwatch"></div><b>춘리</b><span>CHUN-LI<br>스피드 · 연격 · 기공권</span>
+        <div class="csSwatch"></div><b>일렉트라</b><span>ELECTRA<br>스피드 · 연격 · 전격탄</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
       <div class="csCard" data-char="nina" style="--c1:#8b45b8;--c2:#31164a;--cSkin:#f5d3b3">
-        <div class="csSwatch"></div><b>니나</b><span>NINA<br>한방 · 벽 운반 · 잡기</span>
+        <div class="csSwatch"></div><b>카타나</b><span>KATANA<br>블레이드 · 런처 · 한방</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
       <div class="csCard" data-char="cammy" style="--c1:#37a854;--c2:#123a1e;--cSkin:#f2c9a0">
-        <div class="csSwatch"></div><b>캐미</b><span>CAMMY<br>러시다운 · 돌진기</span>
+        <div class="csSwatch"></div><b>재규어</b><span>JAGUAR<br>러시다운 · 도약 돌진</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
       <div class="csCard" data-char="asuka" style="--c1:#4a7ade;--c2:#e8e8e2;--cSkin:#f2cba6">
-        <div class="csSwatch"></div><b>아스카</b><span>ASUKA<br>반격기 · 묵직한 한방</span>
+        <div class="csSwatch"></div><b>섀도우</b><span>SHADOW<br>팬텀 반격 · 트릭</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
       <div class="csCard" data-char="zangief" style="--c1:#c02525;--c2:#1a1a1a;--cSkin:#e8b48a">
-        <div class="csSwatch"></div><b>장기에프</b><span>ZANGIEF<br>거구 · 커맨드 그랩</span>
+        <div class="csSwatch"></div><b>쏜</b><span>THORN<br>거구 · 스파이크 그랩</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
       <div class="csCard" data-char="rmika" style="--c1:#f04a9c;--c2:#ffffff;--cSkin:#f2c9a0">
-        <div class="csSwatch"></div><b>R. 미카</b><span>R. MIKA<br>수플렉스 · 잡기 압박</span>
+        <div class="csSwatch"></div><b>파이로스</b><span>PYROS<br>화염 · 그랩 압박</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
     </div>
     <p id="csHint">
+      <b style="color:#ffd34a">파일럿</b>을 먼저 고르고, 조종할 <b style="color:#ffd34a">HAR(로봇)</b>를 고릅니다.<br>
       이동 <kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> · 결정 <kbd>Enter</kbd>/<kbd>J</kbd> (P2: <kbd>Num1</kbd>/<kbd>N</kbd>) · 뒤로 <kbd>Esc</kbd><br>
       게임패드: 십자키 이동 · 아무 버튼 결정
     </p>
@@ -394,7 +434,20 @@
 
   <div class="screen" id="result">
     <h1 id="resultText">WINS</h1>
-    <p><kbd>Enter</kbd> 다시 대전 &nbsp;|&nbsp; <kbd>Esc</kbd> 타이틀로</p>
+    <p id="resultHint"><kbd>Enter</kbd> 다시 대전 &nbsp;|&nbsp; <kbd>Esc</kbd> 타이틀로</p>
+  </div>
+
+  <div class="screen" id="storyScreen">
+    <h2 id="storyTitle"></h2>
+    <p id="storyText"></p>
+    <p class="storyHint"><kbd>Enter</kbd> 계속</p>
+  </div>
+
+  <div class="screen" id="shopScreen">
+    <h2>정비고 — HAR 업그레이드</h2>
+    <p id="shopCredits"></p>
+    <div id="shopList"></div>
+    <p class="storyHint">이동 <kbd>W</kbd>/<kbd>S</kbd> · 구매/진행 <kbd>Enter</kbd></p>
   </div>
 
   <div id="pauseOverlay">
@@ -570,15 +623,23 @@ const Sound = {
 // ===== src/input.js =====
 // Keyboard + Gamepad state, per-player virtual controllers with a small input buffer.
 const down = new Set();
-const pressedAt = new Map(); // code -> game time of press
+const pressedAt = new Map(); // code -> { t: game time, f: frame no } of press
 
 let gameTime = 0;
-function tickInputClock(dt) { gameTime += dt; }
+let frameNo = 0;
+function tickInputClock(dt) { gameTime += dt; frameNo++; }
+
+// a press is buffered for BUFFER seconds of game time, but never expires before
+// the loop has processed at least one frame after it landed — on slow renderers
+// (software GL) a frame gap can exceed BUFFER and quick taps would vanish
+function freshPress(rec) {
+  return rec !== undefined && (gameTime - rec.t <= BUFFER || frameNo <= rec.f + 1);
+}
 
 window.addEventListener('keydown', (e) => {
   if (e.repeat) return;
   down.add(e.code);
-  pressedAt.set(e.code, gameTime);
+  pressedAt.set(e.code, { t: gameTime, f: frameNo });
 });
 window.addEventListener('keyup', (e) => down.delete(e.code));
 window.addEventListener('blur', () => down.clear());
@@ -593,7 +654,7 @@ const PAD_BTN = { 0: 'skill', 1: 'grab', 2: 'punch', 3: 'kick', 4: 'super', 5: '
 const padState = [null, null].map(() => ({
   connected: false,
   held: new Set(),
-  pressedAt: new Map(), // action -> time
+  pressedAt: new Map(), // action -> { t, f }
   prevBtns: [],
   prevDirs: {},
 }));
@@ -615,7 +676,7 @@ function pollGamepads() {
     };
     for (const [act, on] of Object.entries(dirs)) {
       if (on) st.held.add(act);
-      if (on && !st.prevDirs[act]) st.pressedAt.set(act, gameTime);
+      if (on && !st.prevDirs[act]) st.pressedAt.set(act, { t: gameTime, f: frameNo });
     }
     st.prevDirs = dirs;
 
@@ -623,7 +684,7 @@ function pollGamepads() {
       const b = gp.buttons[btn];
       const on = !!(b && b.pressed);
       if (on) st.held.add(act);
-      if (on && !st.prevBtns[btn]) st.pressedAt.set(act, gameTime);
+      if (on && !st.prevBtns[btn]) st.pressedAt.set(act, { t: gameTime, f: frameNo });
       st.prevBtns[btn] = on;
     }
   }
@@ -637,12 +698,10 @@ function padMenuEdges(i) {
   const out = { left: false, right: false, up: false, down: false, confirm: false };
   if (!st) return out;
   for (const act of ['left', 'right', 'up', 'down']) {
-    const t = st.pressedAt.get(act);
-    if (t !== undefined && gameTime - t <= BUFFER) { out[act] = true; st.pressedAt.delete(act); }
+    if (freshPress(st.pressedAt.get(act))) { out[act] = true; st.pressedAt.delete(act); }
   }
   for (const act of ['skill', 'punch', 'grab', 'kick']) {
-    const t = st.pressedAt.get(act);
-    if (t !== undefined && gameTime - t <= BUFFER) { out.confirm = true; st.pressedAt.delete(act); }
+    if (freshPress(st.pressedAt.get(act))) { out.confirm = true; st.pressedAt.delete(act); }
   }
   return out;
 }
@@ -654,10 +713,7 @@ class KeyboardController {
     return (this.map[action] || []).some((c) => down.has(c));
   }
   pressed(action) {
-    return (this.map[action] || []).some((c) => {
-      const t = pressedAt.get(c);
-      return t !== undefined && gameTime - t <= BUFFER;
-    });
+    return (this.map[action] || []).some((c) => freshPress(pressedAt.get(c)));
   }
   consume(action) {
     for (const c of this.map[action] || []) pressedAt.delete(c);
@@ -669,8 +725,7 @@ class PadController {
   constructor(index) { this.index = index; }
   held(action) { return padState[this.index].held.has(action); }
   pressed(action) {
-    const t = padState[this.index].pressedAt.get(action);
-    return t !== undefined && gameTime - t <= BUFFER;
+    return freshPress(padState[this.index].pressedAt.get(action));
   }
   consume(action) { padState[this.index].pressedAt.delete(action); }
   update() {}
@@ -693,11 +748,10 @@ class VirtualController {
   }
   hold(action, on = true) { on ? this.helds.add(action) : this.helds.delete(action); }
   clearHolds() { this.helds.clear(); }
-  tap(action) { this.taps.set(action, gameTime + BUFFER); }
+  tap(action) { this.taps.set(action, { t: gameTime, f: frameNo }); }
   held(action) { return this.helds.has(action); }
   pressed(action) {
-    const t = this.taps.get(action);
-    return t !== undefined && gameTime <= t;
+    return freshPress(this.taps.get(action));
   }
   consume(action) { this.taps.delete(action); }
   update() {}
@@ -754,7 +808,11 @@ function toTexture(canvas, { srgb = true, repeatX = 1, repeatY = 1 } = {}) {
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(repeatX, repeatY);
   if (srgb) t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 4;
+  // single-level linear filtering: software GL pays ~8 fetches/fragment for
+  // trilinear mipmaps on the fullscreen floor/walls — this keeps it at 1-2
+  t.generateMipmaps = false;
+  t.minFilter = THREE.LinearFilter;
+  t.magFilter = THREE.LinearFilter;
   return t;
 }
 
@@ -1035,7 +1093,107 @@ function drawFabric(color, seed) {
   return { map: toTexture(c), bumpMap: toTexture(bc, { srgb: false }) };
 }
 
-const DRAWERS = { leather: drawLeather, skin: drawSkin, hair: drawHair, wood: drawWood, plaster: drawPlaster, fabric: drawFabric };
+
+// ---------------- brushed armor metal (HAR robots / arena deck) ----------------
+// panel seams + rivets + brushed streaks + scratches. Returns { map, bumpMap }.
+function drawMetal(color, seed, { panels = 3, wear = 0.5 } = {}) {
+  const size = 256;
+  const rnd = mulberry32(seed);
+  const [c, ctx] = makeCanvas(size);
+  const [bc, bctx] = makeCanvas(size);
+
+  ctx.fillStyle = shade(color, 0);
+  ctx.fillRect(0, 0, size, size);
+  bctx.fillStyle = 'rgb(128,128,128)';
+  bctx.fillRect(0, 0, size, size);
+
+  // brushed streaks
+  for (let i = 0; i < 260; i++) {
+    const y = rnd() * size, x0 = rnd() * size, len = 24 + rnd() * 90;
+    const light = rnd() < 0.5;
+    ctx.strokeStyle = shade(color, light ? 0.16 : -0.16, 0.11);
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x0 + len, y); ctx.stroke();
+  }
+
+  // panel seams (jittered grid) + rivets at intersections
+  const cell = size / panels;
+  const jit = () => (rnd() - 0.5) * 8;
+  for (let i = 0; i <= panels; i++) {
+    const v = Math.min(size - 1, i * cell + (i === 0 || i === panels ? 0 : jit()));
+    for (const [sx, sy, ex, ey] of [[v, 0, v, size], [0, v, size, v]]) {
+      ctx.strokeStyle = shade(color, -0.42, 0.5); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.strokeStyle = shade(color, 0.25, 0.25); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(sx + 2, sy + 2); ctx.lineTo(ex + 2, ey + 2); ctx.stroke();
+      bctx.strokeStyle = 'rgba(40,40,40,0.8)'; bctx.lineWidth = 2;
+      bctx.beginPath(); bctx.moveTo(sx, sy); bctx.lineTo(ex, ey); bctx.stroke();
+    }
+    for (let j = 0; j <= panels; j++) {
+      const rx = Math.min(size - 6, Math.max(6, j * cell + 6)), ry = Math.min(size - 6, Math.max(6, v + 6));
+      ctx.fillStyle = shade(color, -0.3, 0.7);
+      ctx.beginPath(); ctx.arc(rx, ry, 2.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = shade(color, 0.35, 0.5);
+      ctx.beginPath(); ctx.arc(rx - 0.7, ry - 0.7, 0.9, 0, Math.PI * 2); ctx.fill();
+      bctx.fillStyle = 'rgba(220,220,220,0.7)';
+      bctx.beginPath(); bctx.arc(rx, ry, 2.2, 0, Math.PI * 2); bctx.fill();
+    }
+  }
+
+  // battle scratches
+  const scr = Math.round(8 * wear);
+  for (let i = 0; i < scr; i++) {
+    walkStroke(ctx, mulberry32(seed + 300 + i), size, shade(color, 0.3, 0.22), 1, 10, 0.5);
+    walkStroke(bctx, mulberry32(seed + 300 + i), size, 'rgba(200,200,200,0.4)', 1, 10, 0.5);
+  }
+  // scorch smudges
+  for (let i = 0; i < Math.round(4 * wear); i++) {
+    const x = rnd() * size, y = rnd() * size, r = 12 + rnd() * 26;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, 'rgba(20,16,12,0.18)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+
+  return { map: toTexture(c), bumpMap: toTexture(bc, { srgb: false }) };
+}
+
+// ---------------- Jupiter disc (2097 Ganymede arena sky) ----------------
+function drawJupiter(color, seed) {
+  const size = 256;
+  const rnd = mulberry32(seed);
+  const [c, ctx] = makeCanvas(size);
+  const bands = [0xd8b090, 0xc09a78, 0xe8cbaa, 0xb08a68, 0xd8ac88, 0xc8a077, 0xe0c09a];
+  let y = 0;
+  let bi = 0;
+  while (y < size) {
+    const h = 12 + rnd() * 26;
+    ctx.fillStyle = shade(bands[bi % bands.length], (rnd() - 0.5) * 0.12);
+    ctx.fillRect(0, y, size, h + 2);
+    // wavy band edge streaks
+    for (let i = 0; i < 5; i++) {
+      ctx.strokeStyle = shade(bands[(bi + 1) % bands.length], -0.08, 0.35);
+      ctx.lineWidth = 1 + rnd() * 2;
+      const yy = y + rnd() * h;
+      ctx.beginPath();
+      ctx.moveTo(0, yy);
+      ctx.bezierCurveTo(size * 0.3, yy + (rnd() - 0.5) * 8, size * 0.7, yy + (rnd() - 0.5) * 8, size, yy);
+      ctx.stroke();
+    }
+    y += h; bi++;
+  }
+  // great red spot
+  ctx.fillStyle = 'rgba(178,72,48,0.85)';
+  ctx.beginPath(); ctx.ellipse(size * 0.62, size * 0.64, 30, 17, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(230,180,150,0.6)';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.ellipse(size * 0.62, size * 0.64, 34, 20, 0, 0, Math.PI * 2); ctx.stroke();
+  const tex = toTexture(c);
+  return { map: tex, bumpMap: tex };
+}
+
+const DRAWERS = { leather: drawLeather, skin: drawSkin, hair: drawHair, wood: drawWood, plaster: drawPlaster, fabric: drawFabric, metal: drawMetal, jupiter: drawJupiter };
 
 function getTextureSet(kind, color, seed, params = {}) {
   const key = `${kind}:${color}:${seed}:${JSON.stringify(params)}`;
@@ -1046,43 +1204,35 @@ function getTextureSet(kind, color, seed, params = {}) {
 // ---------------- character material factories ----------------
 
 // character body parts are small boxes, so sample a sub-window of the texture
-// (repeat < 1) — grain features stay chunky enough to read at fight distance
+// (repeat < 1) — panel/grain features stay chunky enough to read at fight distance
 function zoom(set, k) {
   set.map.repeat.set(k, k);
   set.bumpMap.repeat.set(k, k);
   return set;
 }
 
-// glossy skin: clearcoat gives the highlight sheen without turning metallic
-function skinMaterial(color, seed) {
-  const { map, bumpMap } = zoom(getTextureSet('skin', color, seed), 0.6);
-  return new THREE.MeshPhysicalMaterial({
-    map, bumpMap, bumpScale: 0.5,
-    roughness: 0.34, metalness: 0,
-    clearcoat: 0.55, clearcoatRoughness: 0.35,
+// HAR armor plating — pass z (sub-window zoom) in params so each zoom level
+// gets its own cached texture instead of mutating a shared one.
+// NOTE: no bumpMap — software GL (SwiftShader) drops from 60fps to 4fps with
+// per-fragment bump sampling; the maps bake seam highlight/shadow lines instead
+function metalMaterial(color, seed, { panels = 3, wear = 0.5, rough = 0.38, metal = 0.8, z = 1 } = {}) {
+  const set = getTextureSet('metal', color, seed, { panels, wear, z });
+  if (z !== 1) zoom(set, z);
+  return new THREE.MeshStandardMaterial({
+    map: set.map,
+    roughness: rough, metalness: metal,
   });
 }
 
-// leather clothes: grain/creases/gloss vary per finish so each fighter keeps
-// their identity while everyone reads as leather
-function leatherMaterial(color, seed, { grain = 1, creases = 12, wear = 0.5, gloss = 0.62, metal = 0.05 } = {}) {
-  const { map, bumpMap } = zoom(getTextureSet('leather', color, seed, { grain, creases, wear }), 0.45);
-  return new THREE.MeshStandardMaterial({
-    map, bumpMap, bumpScale: 2.2,
-    roughness: gloss, metalness: metal,
-  });
-}
-
-function hairMaterial(color, seed) {
-  const { map, bumpMap } = zoom(getTextureSet('hair', color, seed), 0.7);
-  return new THREE.MeshStandardMaterial({
-    map, bumpMap, bumpScale: 0.9,
-    roughness: 0.5, metalness: 0.05,
-  });
+function jupiterMaterial() {
+  const { map } = getTextureSet('jupiter', 0xd8b090, 7);
+  return new THREE.MeshBasicMaterial({ map, fog: false });
 }
 
 // ===== src/rig.js =====
-// Procedural humanoid rig built from boxes. Built facing +x; root rotation.y flips facing.
+// Procedural HAR (Human Assisted Robot) rig built from boxes — pre-rendered-3D
+// sprite feel: full 3D shading but flattened depth, facing locked to the 2D
+// fight plane. Built facing +x; root rotation.y flips facing.
 // Pose keys (all default 0):
 //   y, x        : root offset (x = forward in facing space)
 //   tl, tw      : torso lean forward(+) / twist
@@ -1097,17 +1247,8 @@ function hairMaterial(color, seed) {
 
 const POSE_KEYS = ['y','x','tl','tw','sL','sR','sxL','sxR','eL','eR','hL','hR','kL','kR','ry','rz'];
 
-// Per-character leather finish — keeps each fighter's original vibe while all
-// clothes read as leather. grain = pebbling density, creases = wear lines,
-// gloss = roughness (lower = shinier), metal = metalness for hardware sheen.
-const FINISHES = {
-  silk:      { top: { grain: 0.55, creases: 6,  wear: 0.4, gloss: 0.45 }, pants: { grain: 0.55, creases: 6,  wear: 0.4, gloss: 0.45 } }, // fine glossy qipao leather
-  sleek:     { top: { grain: 0.45, creases: 5,  wear: 0.3, gloss: 0.38 }, pants: { grain: 0.45, creases: 5,  wear: 0.3, gloss: 0.38 } }, // polished catsuit
-  military:  { top: { grain: 1.3,  creases: 16, wear: 0.7, gloss: 0.7  }, pants: { grain: 1.3,  creases: 16, wear: 0.7, gloss: 0.7  } }, // matte field gear
-  sturdy:    { top: { grain: 1.0,  creases: 10, wear: 0.5, gloss: 0.6  }, pants: { grain: 1.0,  creases: 10, wear: 0.5, gloss: 0.6  } }, // dogi-weight hide
-  rugged:    { top: { grain: 1.7,  creases: 22, wear: 1.0, gloss: 0.75 }, pants: { grain: 1.7,  creases: 22, wear: 1.0, gloss: 0.75 } }, // battle-worn rawhide
-  spotlight: { top: { grain: 0.4,  creases: 4,  wear: 0.3, gloss: 0.3  }, pants: { grain: 0.4,  creases: 4,  wear: 0.3, gloss: 0.3  } }, // shiny ring gear
-};
+// Per-HAR armor wear — rugged units carry more scratches/scorch marks
+const ARMOR_WEAR = { sleek: 0.25, military: 0.7, sturdy: 0.5, rugged: 1.0, spotlight: 0.2, silk: 0.3 };
 
 function lerpPose(a, b, t) {
   const out = {};
@@ -1139,24 +1280,30 @@ function box(w, h, d, mat) {
 }
 
 function buildRig(cfg) {
-  // seed derived from the outfit palette → every character gets their own
-  // stable grain/crease pattern even with the same finish preset
+  // seed derived from the armor palette → every HAR gets its own stable panel
+  // seam/scratch pattern even when finishes match
   const seed = ((cfg.top ^ (cfg.pants << 1) ^ (cfg.accent << 2)) >>> 0) % 100000;
-  const finish = FINISHES[cfg.finish] || FINISHES.sturdy;
+  const wear = ARMOR_WEAR[cfg.finish] ?? 0.5;
   const mats = {
-    skin: skinMaterial(cfg.skin, seed + 11),
-    top: leatherMaterial(cfg.top, seed + 23, finish.top),
-    pants: leatherMaterial(cfg.pants, seed + 37, finish.pants),
-    glove: leatherMaterial(cfg.glove, seed + 41, { grain: 0.7, creases: 8, wear: 0.6, gloss: 0.42 }), // polished gloves/boots
-    hair: hairMaterial(cfg.hair, seed + 53),
-    accent: leatherMaterial(cfg.accent, seed + 67, { grain: 0.4, creases: 3, wear: 0.3, gloss: 0.3, metal: 0.35 }), // patent trim
+    skin: metalMaterial(cfg.skin, seed + 11, { panels: 2, wear, z: 0.55 }),                    // head/limb secondary alloy
+    top: metalMaterial(cfg.top, seed + 23, { panels: 3, wear, z: 0.5 }),                       // chest plating
+    pants: metalMaterial(cfg.pants, seed + 37, { panels: 3, wear, z: 0.5 }),                   // leg plating
+    glove: metalMaterial(cfg.glove, seed + 41, { panels: 2, wear: wear * 0.6, rough: 0.3, z: 0.6 }), // actuator fists/feet
+    hair: metalMaterial(cfg.hair, seed + 53, { panels: 2, wear: 0.3, z: 0.6 }),                // sensor crest
+    accent: metalMaterial(cfg.accent, seed + 67, { panels: 1, wear: 0.2, rough: 0.25, z: 0.7 }), // trim hardware
   };
   const materials = Object.values(mats);
+  // glowing visor/reactor core — kept OUT of `materials` so setFlash (which
+  // overwrites emissive every frame) never kills the glow
+  const glowMat = new THREE.MeshStandardMaterial({
+    color: cfg.accent, emissive: cfg.accent, emissiveIntensity: 1.5, roughness: 0.35, metalness: 0.2,
+  });
 
   const root = new THREE.Group();
   const spin = new THREE.Group(); // for ry spins
   root.add(spin);
   if (cfg.scale) spin.scale.setScalar(cfg.scale);
+  spin.scale.z *= 0.78; // pre-rendered-sprite feel: flatten depth so HARs read 2D
 
   const pelvis = new THREE.Group();
   pelvis.position.y = 0.95;
@@ -1174,6 +1321,9 @@ function buildRig(cfg) {
   const torsoMesh = box(0.3, 0.52, 0.38, mats.top);
   torsoMesh.position.y = 0.3;
   torso.add(torsoMesh);
+  const core = box(0.04, 0.1, 0.1, glowMat); // reactor core light
+  core.position.set(0.15, 0.32, 0);
+  torso.add(core);
   if (cfg.skirt) {
     // qipao side-slit panels (front & back in facing space)
     for (const s of [-1, 1]) {
@@ -1189,6 +1339,9 @@ function buildRig(cfg) {
   const headMesh = box(0.24, 0.26, 0.22, mats.skin);
   headMesh.position.y = 0.13;
   head.add(headMesh);
+  const visor = box(0.04, 0.08, 0.19, glowMat); // mono-eye sensor visor
+  visor.position.set(0.115, 0.16, 0);
+  head.add(visor);
   const hairMesh = box(0.26, 0.12, 0.24, mats.hair);
   hairMesh.position.set(-0.02, 0.26, 0);
   head.add(hairMesh);
@@ -1580,14 +1733,14 @@ function superArt(name, limbs, anim, opts = {}) {
 // ============================================================
 const CHUNLI = {
   id: 'chunli',
-  displayName: 'CHUN-LI',
-  nameKo: '춘리',
+  displayName: 'ELECTRA',
+  nameKo: '일렉트라',
   health: 1000,
   walkF: 2.5, walkB: 1.9,
   jumpVy: 7.2,
   rig: {
-    skin: 0xf2c9a0, top: 0x1d4fd7, pants: 0x1d4fd7, glove: 0xf5f0e6,
-    hair: 0x241a12, accent: 0xe8b83a, hairstyle: 'buns', skirt: true, bracelets: true, finish: 'silk',
+    skin: 0x9fb4d8, top: 0x1d4fd7, pants: 0x16337a, glove: 0xd8e0f0,
+    hair: 0xc8d2e8, accent: 0x66e0ff, hairstyle: 'buns', skirt: true, bracelets: true, finish: 'sleek',
   },
   moves: {
     punch: {
@@ -1637,7 +1790,7 @@ const CHUNLI = {
       catchT: 0.14, liftT: 0.32, damage: 110, range: 1.0, kb: 5.5, kbUp: 4.5,
     }),
     skillN: {
-      name: '기공권', startup: 0.24, active: 0.02, recovery: 0.38, isSkill: true,
+      name: '일렉트릭 샤드', startup: 0.24, active: 0.02, recovery: 0.38, isSkill: true,
       damage: 0, level: 'sm', sound: 'fireball',
       proj: { kind: 'fireball', speed: 7.2, damage: 60, level: 'sm', hitstun: 0.42, blockstun: 0.3, kb: 3.0, chip: 0.15, color: 0x66aaff, y: 1.15, radius: 0.3 },
       anim: [
@@ -1649,7 +1802,7 @@ const CHUNLI = {
       ],
     },
     skillF: {
-      name: '천승각', startup: 0.07, active: 0.32, recovery: 0.5, isSkill: true,
+      name: '라이징 볼트', startup: 0.07, active: 0.32, recovery: 0.5, isSkill: true,
       damage: 100, level: 'mid', hitstun: 0.5, blockstun: 0.3, kb: 1.5, kbUp: 8.5,
       limbs: ['footR'], radius: 0.36, invuln: [0, 0.2], selfVy: 7.5, fwdSpeed: 1.5,
       chip: 0.15, sound: 'whoosh', afterimage: true, landingLag: true,
@@ -1661,7 +1814,7 @@ const CHUNLI = {
       ],
     },
     skillB: {
-      name: '백열각', startup: 0.14, active: 0.48, recovery: 0.34, isSkill: true,
+      name: '롤링 썬더', startup: 0.14, active: 0.48, recovery: 0.34, isSkill: true,
       damage: 22, level: 'mid', hitstun: 0.22, blockstun: 0.16, kb: 0.8,
       hits: 4, hitInterval: 0.12,
       lastHit: { kb: 5.5, kbUp: 3.2, knockdown: true, hitstun: 0.6 },
@@ -1678,7 +1831,7 @@ const CHUNLI = {
       ],
     },
     skillD: {
-      name: '회전각', startup: 0.18, active: 0.09, recovery: 0.42, isSkill: true, crouching: true,
+      name: '볼트 스윕', startup: 0.18, active: 0.09, recovery: 0.42, isSkill: true, crouching: true,
       damage: 60, level: 'low', hitstun: 0.6, blockstun: 0.26, kb: 3.0, knockdown: true,
       limbs: ['footR'], radius: 0.34, chip: 0.1, sound: 'whoosh',
       anim: [
@@ -1690,7 +1843,7 @@ const CHUNLI = {
         [1, ST],
       ],
     },
-    superN: superArt('봉익선', ['footR', 'footL'], [
+    superN: superArt('썬더 스톰', ['footR', 'footL'], [
       [0, ST],
       [0.18, { ...ST, y: -0.16, tl: 0.25, sxL: 0.5, sxR: 0.5 }],
       [0.3, { ...ST, tl: -0.1, hR: 1.6, kR: -0.05, sxL: 0.5, sxR: 0.5 }],
@@ -1710,14 +1863,14 @@ attachCommandNormals(CHUNLI);
 // ============================================================
 const NINA = {
   id: 'nina',
-  displayName: 'NINA',
-  nameKo: '니나',
+  displayName: 'KATANA',
+  nameKo: '카타나',
   health: 1000,
   walkF: 2.3, walkB: 1.8,
   jumpVy: 7.0,
   rig: {
-    skin: 0xf5d3b3, top: 0x6a2f8f, pants: 0x5a2680, glove: 0x2a1a35,
-    hair: 0xe8c96a, accent: 0xb98fd6, hairstyle: 'ponytail', sleeves: true, finish: 'sleek',
+    skin: 0xb9bec9, top: 0x6a2f8f, pants: 0x3d1d5c, glove: 0x2a2438,
+    hair: 0xd8dce4, accent: 0xff4bd8, hairstyle: 'ponytail', sleeves: true, finish: 'sleek',
   },
   moves: {
     punch: {
@@ -1765,7 +1918,7 @@ const NINA = {
       catchT: 0.14, liftT: 0.32, damage: 125, range: 1.0, kb: 6.0, kbUp: 4.0,
     }),
     skillN: {
-      name: '블론드 밤', startup: 0.2, active: 0.08, recovery: 0.44, isSkill: true,
+      name: '소닉 슬래시', startup: 0.2, active: 0.08, recovery: 0.44, isSkill: true,
       damage: 85, level: 'mid', hitstun: 0.55, blockstun: 0.32, kb: 10.0, knockdown: true,
       limbs: ['fistL', 'fistR'], radius: 0.38, fwdSpeed: 2.2, fwdWindow: [0, 0.28],
       chip: 0.15, sound: 'whoosh', afterimage: true,
@@ -1778,7 +1931,7 @@ const NINA = {
       ],
     },
     skillF: {
-      name: '디바인 캐논', startup: 0.13, active: 0.07, recovery: 0.4, isSkill: true,
+      name: '라이징 블레이드', startup: 0.13, active: 0.07, recovery: 0.4, isSkill: true,
       damage: 88, level: 'mid', hitstun: 0.5, blockstun: 0.28, kb: 2.0, kbUp: 9.0,
       limbs: ['footR'], radius: 0.36, fwdSpeed: 2.5, fwdWindow: [0, 0.2],
       chip: 0.15, sound: 'whoosh', afterimage: true,
@@ -1791,7 +1944,7 @@ const NINA = {
       ],
     },
     skillB: {
-      name: '아이보리 커터', startup: 0.16, active: 0.1, recovery: 0.4, isSkill: true,
+      name: '스핀 커터', startup: 0.16, active: 0.1, recovery: 0.4, isSkill: true,
       damage: 75, level: 'mid', hitstun: 0.5, blockstun: 0.26, kb: 2.5, kbUp: 7.5,
       limbs: ['footL'], radius: 0.36, invuln: [0, 0.18],
       fwdSpeed: -2.8, fwdWindow: [0, 0.3], selfHop: 3.5,
@@ -1805,7 +1958,7 @@ const NINA = {
       ],
     },
     skillD: {
-      name: '스위핑 로우', startup: 0.2, active: 0.1, recovery: 0.45, isSkill: true, crouching: true,
+      name: '로우 슬라이서', startup: 0.2, active: 0.1, recovery: 0.45, isSkill: true, crouching: true,
       damage: 68, level: 'low', hitstun: 0.6, blockstun: 0.28, kb: 3.2, knockdown: true,
       limbs: ['footR'], radius: 0.34, fwdSpeed: 1.8, fwdWindow: [0, 0.3],
       chip: 0.1, sound: 'whoosh',
@@ -1818,7 +1971,7 @@ const NINA = {
         [1, ST],
       ],
     },
-    superN: superArt('사일런트 어썰트', ['fistL', 'fistR'], [
+    superN: superArt('트리플 블레이드', ['fistL', 'fistR'], [
       [0, ST],
       [0.18, { ...ST, y: -0.15, tl: 0.2, tw: -0.7, sL: -0.5, eL: 1.2, sR: -0.4, eR: 1.1 }],
       [0.3, { y: -0.08, tl: 0.2, tw: 0.35, sL: 1.55, eL: 0.1, sR: 0.3, eR: 1.7, hL: 0.4, kL: -0.6 }],
@@ -1838,14 +1991,14 @@ attachCommandNormals(NINA);
 // ============================================================
 const CAMMY = {
   id: 'cammy',
-  displayName: 'CAMMY',
-  nameKo: '캐미',
+  displayName: 'JAGUAR',
+  nameKo: '재규어',
   health: 950,
   walkF: 2.75, walkB: 2.0,
   jumpVy: 7.5,
   rig: {
-    skin: 0xf2c9a0, top: 0x2e8b3a, pants: 0xf2c9a0, glove: 0xc03030,
-    hair: 0xe8c96a, accent: 0xc03030, hairstyle: 'braids', beret: true, finish: 'military',
+    skin: 0xa8b8a0, top: 0x2e8b3a, pants: 0x1c5426, glove: 0xc03030,
+    hair: 0xc8b840, accent: 0xffe14b, hairstyle: 'braids', beret: true, finish: 'military',
   },
   moves: {
     punch: {
@@ -1893,7 +2046,7 @@ const CAMMY = {
       catchT: 0.14, liftT: 0.32, damage: 115, range: 1.0, kb: 6.5, kbUp: 5.0,
     }),
     skillN: {
-      name: '스핀 너클', startup: 0.26, active: 0.08, recovery: 0.42, isSkill: true,
+      name: '컨커션 캐논', startup: 0.26, active: 0.08, recovery: 0.42, isSkill: true,
       damage: 78, level: 'mid', hitstun: 0.6, blockstun: 0.3, kb: 1.2, crumple: true,
       limbs: ['fistR'], radius: 0.36, fwdSpeed: 2.8, fwdWindow: [0.05, 0.34],
       chip: 0.12, sound: 'whoosh', afterimage: true,
@@ -1906,7 +2059,7 @@ const CAMMY = {
       ],
     },
     skillF: {
-      name: '캐논 스파이크', startup: 0.08, active: 0.3, recovery: 0.5, isSkill: true,
+      name: '재규어 어퍼', startup: 0.08, active: 0.3, recovery: 0.5, isSkill: true,
       damage: 95, level: 'mid', hitstun: 0.5, blockstun: 0.3, kb: 1.8, kbUp: 8.2,
       limbs: ['footR'], radius: 0.36, invuln: [0, 0.2], selfVy: 7.8, fwdSpeed: 1.2,
       chip: 0.15, sound: 'whoosh', afterimage: true, landingLag: true,
@@ -1918,7 +2071,7 @@ const CAMMY = {
       ],
     },
     skillB: {
-      name: '스파이럴 애로우', startup: 0.17, active: 0.3, recovery: 0.4, isSkill: true,
+      name: '재규어 리프', startup: 0.17, active: 0.3, recovery: 0.4, isSkill: true,
       damage: 90, level: 'mid', hitstun: 0.55, blockstun: 0.28, kb: 6.0, knockdown: true,
       limbs: ['footR', 'footL'], radius: 0.36, fwdSpeed: 6.0, fwdWindow: [0.17, 0.47],
       chip: 0.15, sound: 'whoosh', afterimage: true,
@@ -1932,7 +2085,7 @@ const CAMMY = {
       ],
     },
     skillD: {
-      name: '슬라이딩', startup: 0.19, active: 0.12, recovery: 0.45, isSkill: true, crouching: true,
+      name: '로우 파운스', startup: 0.19, active: 0.12, recovery: 0.45, isSkill: true, crouching: true,
       damage: 60, level: 'low', hitstun: 0.55, blockstun: 0.26, kb: 3.0, knockdown: true,
       limbs: ['footR'], radius: 0.34, fwdSpeed: 3.5, fwdWindow: [0.05, 0.31],
       chip: 0.1, sound: 'whoosh',
@@ -1944,7 +2097,7 @@ const CAMMY = {
         [1, ST],
       ],
     },
-    superN: superArt('스핀 드라이브 스매셔', ['footR', 'footL'], [
+    superN: superArt('오버드라이브 리프', ['footR', 'footL'], [
       [0, ST],
       [0.18, { ...ST, y: -0.22, tl: 0.4 }],
       [0.3, { y: -0.45, rz: 1.25, sL: -0.8, eL: 0.4, sR: -0.8, eR: 0.4, hL: 0.1, kL: -0.1, hR: 0, kR: -0.05, ry: 1.5 }],
@@ -1962,14 +2115,14 @@ attachCommandNormals(CAMMY);
 // ============================================================
 const ASUKA = {
   id: 'asuka',
-  displayName: 'ASUKA',
-  nameKo: '아스카',
+  displayName: 'SHADOW',
+  nameKo: '섀도우',
   health: 1050,
   walkF: 2.2, walkB: 1.75,
   jumpVy: 6.9,
   rig: {
-    skin: 0xf2cba6, top: 0x3f6fd0, pants: 0xf3f3f0, glove: 0xd6e4ff,
-    hair: 0x33261e, accent: 0xd04a20, hairstyle: 'short', sleeves: false, finish: 'sturdy',
+    skin: 0x6a7086, top: 0x3a3f52, pants: 0x23283a, glove: 0x9db7ff,
+    hair: 0x8a93b0, accent: 0x9db7ff, hairstyle: 'short', sleeves: false, finish: 'sturdy',
   },
   moves: {
     punch: {
@@ -2018,7 +2171,7 @@ const ASUKA = {
     }),
     // 반격기: catches high/mid strikes during the window, then auto-counters.
     skillN: {
-      name: '백로 반격', startup: 0.06, active: 0.42, recovery: 0.5, isSkill: true,
+      name: '팬텀 트랩', startup: 0.06, active: 0.42, recovery: 0.5, isSkill: true,
       parry: true, counterDamage: 95,
       damage: 0, level: 'mid', hitstun: 0, blockstun: 0, kb: 0,
       limbs: [], radius: 0, sound: 'whoosh',
@@ -2041,7 +2194,7 @@ const ASUKA = {
       ],
     },
     skillF: {
-      name: '귀신무', startup: 0.14, active: 0.07, recovery: 0.42, isSkill: true,
+      name: '섀도우 라이즈', startup: 0.14, active: 0.07, recovery: 0.42, isSkill: true,
       damage: 92, level: 'mid', hitstun: 0.5, blockstun: 0.28, kb: 1.8, kbUp: 8.8,
       limbs: ['footL'], radius: 0.36, fwdSpeed: 2.0, fwdWindow: [0, 0.21],
       chip: 0.15, sound: 'whoosh', afterimage: true,
@@ -2054,7 +2207,7 @@ const ASUKA = {
       ],
     },
     skillB: {
-      name: '선풍연각', startup: 0.16, active: 0.36, recovery: 0.38, isSkill: true,
+      name: '트윈 팬텀', startup: 0.16, active: 0.36, recovery: 0.38, isSkill: true,
       damage: 45, level: 'mid', hitstun: 0.26, blockstun: 0.18, kb: 1.0,
       hits: 2, hitInterval: 0.17,
       lastHit: { kb: 6.0, kbUp: 3.0, knockdown: true, hitstun: 0.6 },
@@ -2069,7 +2222,7 @@ const ASUKA = {
       ],
     },
     skillD: {
-      name: '낙엽쓸기', startup: 0.22, active: 0.1, recovery: 0.46, isSkill: true, crouching: true,
+      name: '섀도우 스윕', startup: 0.22, active: 0.1, recovery: 0.46, isSkill: true, crouching: true,
       damage: 72, level: 'low', hitstun: 0.6, blockstun: 0.28, kb: 3.2, knockdown: true,
       limbs: ['footR'], radius: 0.34, fwdSpeed: 1.4, fwdWindow: [0, 0.32],
       chip: 0.1, sound: 'whoosh',
@@ -2082,7 +2235,7 @@ const ASUKA = {
         [1, ST],
       ],
     },
-    superN: superArt('귀신 연무', ['fistL', 'footR'], [
+    superN: superArt('팬텀 러시', ['fistL', 'footR'], [
       [0, ST],
       [0.18, { ...ST, y: -0.15, tl: 0.2, tw: -0.6, sL: -0.5, eL: 1.2 }],
       [0.3, { y: -0.08, tl: 0.2, tw: 0.35, sL: 1.55, eL: 0.1, sR: 0.3, eR: 1.7, hL: 0.4, kL: -0.6 }],
@@ -2102,14 +2255,14 @@ attachCommandNormals(ASUKA);
 // ============================================================
 const ZANGIEF = {
   id: 'zangief',
-  displayName: 'ZANGIEF',
-  nameKo: '장기에프',
+  displayName: 'THORN',
+  nameKo: '쏜',
   health: 1200,
   walkF: 1.9, walkB: 1.5,
   jumpVy: 6.3,
   rig: {
-    skin: 0xe8b48a, top: 0xb31d1d, pants: 0x1a1a1a, glove: 0x7a2a1a,
-    hair: 0x2a2a2a, accent: 0xd8b53a, sleeves: false, scale: 1.17, finish: 'rugged',
+    skin: 0x8a8378, top: 0xb31d1d, pants: 0x2a2a2a, glove: 0x4a4a4a,
+    hair: 0x5a5a5a, accent: 0xffa030, sleeves: false, scale: 1.17, finish: 'rugged',
   },
   moves: {
     punch: {
@@ -2158,12 +2311,12 @@ const ZANGIEF = {
     }),
     // 커맨드 그랩: 장기에프의 시그니처 스크류 파일드라이버.
     skillN: throwMove({
-      name: '스크류 파일드라이버', style: 'piledriver', isCommandThrow: true,
+      name: '스파이크 크러시', style: 'piledriver', isCommandThrow: true,
       startup: 0.2, active: 0.09, recovery: 0.55,
       catchT: 0.18, liftT: 0.42, damage: 175, range: 1.2, knockdown: true,
     }),
     skillF: {
-      name: '배니싱 플랫', startup: 0.22, active: 0.1, recovery: 0.4, isSkill: true,
+      name: '스파이크 샷', startup: 0.22, active: 0.1, recovery: 0.4, isSkill: true,
       damage: 70, level: 'mid', hitstun: 0.4, blockstun: 0.26, kb: 3.0,
       limbs: ['fistR'], radius: 0.36, fwdSpeed: 2.0, fwdWindow: [0, 0.28],
       chip: 0.12, sound: 'whoosh',
@@ -2176,7 +2329,7 @@ const ZANGIEF = {
       ],
     },
     skillB: {
-      name: '더블 라리아트', startup: 0.18, active: 0.4, recovery: 0.38, isSkill: true,
+      name: '쏜 스핀', startup: 0.18, active: 0.4, recovery: 0.38, isSkill: true,
       damage: 32, level: 'mid', hitstun: 0.24, blockstun: 0.17, kb: 1.2,
       hits: 2, hitInterval: 0.18,
       lastHit: { kb: 5.0, kbUp: 3.0, knockdown: true, hitstun: 0.55 },
@@ -2191,7 +2344,7 @@ const ZANGIEF = {
       ],
     },
     skillD: {
-      name: '더블 니 프레스', startup: 0.2, active: 0.1, recovery: 0.42, isSkill: true, crouching: true,
+      name: '스파이크 니', startup: 0.2, active: 0.1, recovery: 0.42, isSkill: true, crouching: true,
       damage: 55, level: 'low', hitstun: 0.5, blockstun: 0.26, kb: 2.5, knockdown: true,
       limbs: ['footR'], radius: 0.32, fwdSpeed: 0.8, fwdWindow: [0, 0.28],
       chip: 0.1, sound: 'whoosh',
@@ -2203,7 +2356,7 @@ const ZANGIEF = {
         [1, ST],
       ],
     },
-    superN: superArt('레드 사이클론', ['fistL', 'fistR'], [
+    superN: superArt('임팩트 크러셔', ['fistL', 'fistR'], [
       [0, ST],
       [0.18, { ...ST, tw: -0.3, sL: 1.4, eL: 0.2, sR: 1.4, eR: 0.2, sxL: 0.6, sxR: 0.6 }],
       [0.3, { ...ST, tw: 1.5, sL: 1.4, eL: 0.2, sR: 1.4, eR: 0.2, sxL: 0.6, sxR: 0.6, ry: 2.5 }],
@@ -2222,14 +2375,14 @@ attachCommandNormals(ZANGIEF);
 // ============================================================
 const RMIKA = {
   id: 'rmika',
-  displayName: 'R. MIKA',
-  nameKo: 'R. 미카',
+  displayName: 'PYROS',
+  nameKo: '파이로스',
   health: 1020,
   walkF: 2.35, walkB: 1.85,
   jumpVy: 6.8,
   rig: {
-    skin: 0xf2c9a0, top: 0xe83f8f, pants: 0xffffff, glove: 0xffffff,
-    hair: 0xe8c96a, accent: 0xffd93d, hairstyle: 'buns', sleeves: false, finish: 'spotlight',
+    skin: 0xb89078, top: 0xe8792a, pants: 0x8f2038, glove: 0x402020,
+    hair: 0xd8b53a, accent: 0xffd93d, hairstyle: 'buns', sleeves: false, finish: 'spotlight',
   },
   moves: {
     punch: {
@@ -2278,12 +2431,12 @@ const RMIKA = {
     }),
     // 커맨드 그랩: 미카의 시그니처 수플렉스.
     skillN: throwMove({
-      name: '슈팅 피치 수플렉스', style: 'suplex', isCommandThrow: true,
+      name: '인페르노 드라이버', style: 'suplex', isCommandThrow: true,
       startup: 0.19, active: 0.08, recovery: 0.5,
       catchT: 0.16, liftT: 0.4, damage: 160, range: 1.15, kb: 1.0, knockdown: true,
     }),
     skillF: {
-      name: '러닝 바디 프레스', startup: 0.16, active: 0.14, recovery: 0.4, isSkill: true,
+      name: '플레임 대시', startup: 0.16, active: 0.14, recovery: 0.4, isSkill: true,
       damage: 68, level: 'mid', hitstun: 0.42, blockstun: 0.26, kb: 3.4,
       limbs: ['fistL', 'fistR'], radius: 0.4, fwdSpeed: 3.4, fwdWindow: [0, 0.3],
       chip: 0.13, sound: 'whoosh', afterimage: true,
@@ -2296,7 +2449,7 @@ const RMIKA = {
       ],
     },
     skillB: {
-      name: '피치 캔 캔', startup: 0.15, active: 0.36, recovery: 0.36, isSkill: true,
+      name: '트윈 버너', startup: 0.15, active: 0.36, recovery: 0.36, isSkill: true,
       damage: 28, level: 'mid', hitstun: 0.24, blockstun: 0.17, kb: 1.0,
       hits: 2, hitInterval: 0.16,
       lastHit: { kb: 5.0, kbUp: 3.0, knockdown: true, hitstun: 0.55 },
@@ -2311,7 +2464,7 @@ const RMIKA = {
       ],
     },
     skillD: {
-      name: '로우 슬라이드', startup: 0.18, active: 0.11, recovery: 0.44, isSkill: true, crouching: true,
+      name: '번 슬라이드', startup: 0.18, active: 0.11, recovery: 0.44, isSkill: true, crouching: true,
       damage: 58, level: 'low', hitstun: 0.55, blockstun: 0.26, kb: 3.0, knockdown: true,
       limbs: ['footR'], radius: 0.34, fwdSpeed: 3.0, fwdWindow: [0.05, 0.3],
       chip: 0.1, sound: 'whoosh',
@@ -2323,7 +2476,7 @@ const RMIKA = {
         [1, ST],
       ],
     },
-    superN: superArt('미카 익스프레스', ['fistL', 'footR'], [
+    superN: superArt('슈퍼 노바', ['fistL', 'footR'], [
       [0, ST],
       [0.18, { ...ST, y: -0.15, tl: 0.2, tw: -0.6, sL: -0.5, eL: 1.2 }],
       [0.3, { y: -0.08, tl: 0.2, tw: 0.35, sL: 1.55, eL: 0.1, sR: 0.3, eR: 1.7, hL: 0.4, kL: -0.6 }],
@@ -2339,6 +2492,22 @@ const RMIKA = {
 attachCommandNormals(RMIKA);
 
 
+// ============================================================
+// PILOTS — the human side of the pilot+HAR combo. Stats multiply the HAR's
+// base performance: power → damage, agility → mobility, endurance → armor HP.
+// ============================================================
+const PILOTS = [
+  { id: 'crystal',   name: '크리스탈', en: 'CRYSTAL',   power: 1.00, agility: 1.08, endurance: 1.00, blurb: '실종된 부모의 행방을 쫓아 링에 오른 수석 훈련생' },
+  { id: 'steffan',   name: '스테판',   en: 'STEFFAN',   power: 1.15, agility: 0.92, endurance: 1.05, blurb: '한 방의 무게를 믿는 전직 중장비 테스트 파일럿' },
+  { id: 'milano',    name: '밀라노',   en: 'MILANO',    power: 0.90, agility: 1.18, endurance: 0.95, blurb: '속도광. 제로G 레이스 3연패 후 격투로 전향' },
+  { id: 'christian', name: '크리스천', en: 'CHRISTIAN', power: 1.08, agility: 1.00, endurance: 0.95, blurb: '우승 상금으로 빚을 갚아야 하는 냉정한 승부사' },
+  { id: 'shirro',    name: '시로',     en: 'SHIRRO',    power: 0.95, agility: 0.92, endurance: 1.22, blurb: '버티는 싸움의 달인. 은퇴한 궤도 구조대원' },
+  { id: 'angel',     name: '엔젤',     en: 'ANGEL',     power: 1.00, agility: 1.12, endurance: 0.90, blurb: '정체를 숨긴 기업 스파이. 데이터가 목적이다' },
+];
+
+// 최종 보스 전용 파일럿 — 선택 불가
+const BOSS_PILOT = { id: 'kreissack', name: '크라이색', en: 'KREISSACK', power: 1.18, agility: 1.0, endurance: 1.28, blurb: 'WAR 총수. 프로토타입 노바의 유일한 파일럿' };
+
 const CHARACTERS = {
   chunli: CHUNLI,
   nina: NINA,
@@ -2346,6 +2515,19 @@ const CHARACTERS = {
   asuka: ASUKA,
   zangief: ZANGIEF,
   rmika: RMIKA,
+};
+
+// 최종 보스 HAR — 토너먼트 전용, 로스터에는 포함되지 않는다
+const NOVA = {
+  ...ZANGIEF,
+  id: 'nova',
+  displayName: 'NOVA',
+  nameKo: '노바',
+  health: 1250,
+  rig: {
+    skin: 0x3a3a42, top: 0x1c1c22, pants: 0x5c0f0f, glove: 0x333333,
+    hair: 0x2a2a30, accent: 0xff2020, sleeves: false, scale: 1.28, finish: 'rugged',
+  },
 };
 
 // ===== src/fx.js =====
@@ -2505,125 +2687,136 @@ class FX {
 }
 
 // ===== src/stage.js =====
-// 3D dojo-style stage with left/right walls (wall-splat boundaries).
-// Surfaces use procedural textures + bump maps (wood grain, plaster, woven
-// fabric) so walls/floor catch the lantern light with real depth.
+// 2097 Ganymede arena — metal fight deck between energy barriers, holo ad
+// panels, floodlights, and Jupiter hanging huge in the black sky. Surfaces use
+// procedural metal textures; left/right walls remain the wall-splat boundaries.
 
 
 const WALL_X = 6.4; // gameplay wall plane
 
-function texturedMat(kind, color, seed, opts = {}) {
-  const { map, bumpMap } = getTextureSet(kind, color, seed);
-  return new THREE.MeshStandardMaterial({
-    map, bumpMap,
-    bumpScale: opts.bumpScale ?? 1.6,
-    roughness: opts.roughness ?? 0.85,
-    metalness: opts.metalness ?? 0,
-    ...(opts.side ? { side: opts.side } : {}),
-    ...(opts.emissive != null ? { emissive: opts.emissive, emissiveIntensity: opts.emissiveIntensity ?? 1 } : {}),
-  });
-}
-
 function buildStage(scene) {
-  scene.background = new THREE.Color(0x161226);
-  scene.fog = new THREE.Fog(0x161226, 18, 42);
+  scene.background = new THREE.Color(0x05060e);
+  scene.fog = new THREE.Fog(0x05060e, 18, 46);
 
-  // lights
-  const hemi = new THREE.HemisphereLight(0xbfd4ff, 0x3a2b22, 0.85);
+  // lights — cold arena floods + warm accent
+  const hemi = new THREE.HemisphereLight(0x9fb8ff, 0x1a1410, 0.85);
   scene.add(hemi);
-  const key = new THREE.DirectionalLight(0xffeedd, 1.6);
+  const key = new THREE.DirectionalLight(0xeef2ff, 1.7);
   key.position.set(4, 9, 6);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(1024, 1024);
   key.shadow.camera.left = -10; key.shadow.camera.right = 10;
   key.shadow.camera.top = 10; key.shadow.camera.bottom = -3;
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0x7f9dff, 0.7);
+  const rim = new THREE.DirectionalLight(0x6f8dff, 0.8);
   rim.position.set(-5, 6, -6);
   scene.add(rim);
 
-  // floor — wooden planks (two grain seeds so alternating boards read distinct)
+  // fight deck — armored floor plates (two seeds so alternating plates read distinct)
   const floorGroup = new THREE.Group();
-  const plankMatA = texturedMat('wood', 0x8a6642, 101, { roughness: 0.8, bumpScale: 2.0 });
-  const plankMatB = texturedMat('wood', 0x7a5738, 202, { roughness: 0.82, bumpScale: 2.0 });
+  const plateMatA = metalMaterial(0x3a4150, 111, { panels: 2, wear: 0.7, rough: 0.5 });
+  const plateMatB = metalMaterial(0x2e3542, 222, { panels: 2, wear: 0.9, rough: 0.55 });
   for (let i = 0; i < 16; i++) {
-    const plank = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.08, 7.6), i % 2 ? plankMatA : plankMatB);
-    plank.position.set(-7.5 + i, -0.04, 0);
-    plank.receiveShadow = true;
-    floorGroup.add(plank);
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.08, 7.6), i % 2 ? plateMatA : plateMatB);
+    plate.position.set(-7.5 + i, -0.04, 0);
+    plate.receiveShadow = true;
+    floorGroup.add(plate);
   }
   scene.add(floorGroup);
 
-  // center emblem — worn painted circle
+  // center ring — glowing WAR broadcast circle
   const emblem = new THREE.Mesh(
-    new THREE.CircleGeometry(1.4, 40),
-    texturedMat('plaster', 0xa03030, 303, { roughness: 0.75, bumpScale: 1.2 })
+    new THREE.RingGeometry(1.15, 1.4, 48),
+    new THREE.MeshStandardMaterial({ color: 0x0a2a3a, emissive: 0x2fd8ff, emissiveIntensity: 0.9, side: THREE.DoubleSide })
   );
   emblem.rotation.x = -Math.PI / 2;
-  emblem.position.y = 0.005;
-  emblem.receiveShadow = true;
+  emblem.position.y = 0.006;
   scene.add(emblem);
+  const emblemCore = new THREE.Mesh(
+    new THREE.CircleGeometry(1.15, 48),
+    metalMaterial(0x232833, 333, { panels: 3, wear: 0.6, rough: 0.45 })
+  );
+  emblemCore.rotation.x = -Math.PI / 2;
+  emblemCore.position.y = 0.005;
+  emblemCore.receiveShadow = true;
+  scene.add(emblemCore);
 
-  // side walls — cracked plaster with gold trim
-  const wallMat = texturedMat('plaster', 0x4a3b55, 404, { roughness: 0.88, bumpScale: 2.2 });
-  const wallTrim = new THREE.MeshStandardMaterial({ color: 0xd8b56a, roughness: 0.45, metalness: 0.45 });
+  // side walls — armored barriers with hazard stripes + energy trim
+  const wallMat = metalMaterial(0x2a2f3d, 444, { panels: 3, wear: 1.0, rough: 0.5 });
+  const hazardMat = new THREE.MeshStandardMaterial({ color: 0xd8b53a, emissive: 0x9a7410, emissiveIntensity: 0.35, roughness: 0.5, metalness: 0.4 });
   for (const s of [-1, 1]) {
     const wall = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3.6, 7.6), wallMat);
     wall.position.set(s * (WALL_X + 0.45), 1.8, 0);
     wall.castShadow = true; wall.receiveShadow = true;
     scene.add(wall);
-    const trim = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.18, 7.7), wallTrim);
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.28, 7.65), hazardMat);
+    stripe.position.set(s * (WALL_X + 0.45), 0.6, 0);
+    scene.add(stripe);
+    const trim = new THREE.Mesh(
+      new THREE.BoxGeometry(0.6, 0.14, 7.7),
+      new THREE.MeshStandardMaterial({ color: 0x66e0ff, emissive: 0x2fd8ff, emissiveIntensity: 1.2, roughness: 0.3 })
+    );
     trim.position.set(s * (WALL_X + 0.45), 3.5, 0);
     scene.add(trim);
-    // wall lanterns
+    // barrier floodlights (emissive only — point lights are costly on software GL)
     for (const z of [-2.4, 0, 2.4]) {
       const lampBody = new THREE.Mesh(
-        new THREE.BoxGeometry(0.16, 0.42, 0.16),
-        new THREE.MeshStandardMaterial({ color: 0xffdd88, emissive: 0xffa030, emissiveIntensity: 1.4 })
+        new THREE.BoxGeometry(0.14, 0.36, 0.14),
+        new THREE.MeshStandardMaterial({ color: 0xbfe8ff, emissive: 0x8fd0ff, emissiveIntensity: 1.6 })
       );
-      lampBody.position.set(s * (WALL_X + 0.12), 2.4, z);
+      lampBody.position.set(s * (WALL_X + 0.12), 2.5, z);
       scene.add(lampBody);
     }
-    const lampLight = new THREE.PointLight(0xffa860, 6, 8);
-    lampLight.position.set(s * (WALL_X - 0.4), 2.4, 0);
-    scene.add(lampLight);
   }
 
-  // back platform edge + pillars for depth
-  const backMat = texturedMat('plaster', 0x2c2440, 505, { roughness: 0.92, bumpScale: 1.8 });
+  // back gantry — plated wall, support struts, holo ad panels
+  const backMat = metalMaterial(0x1a1e2a, 555, { panels: 4, wear: 0.8, rough: 0.6 });
   const backWall = new THREE.Mesh(new THREE.BoxGeometry(15.4, 4.5, 0.4), backMat);
   backWall.position.set(0, 2.2, -4.0);
   backWall.receiveShadow = true;
   scene.add(backWall);
-  const pillarMat = texturedMat('wood', 0x5a4a35, 606, { roughness: 0.78, bumpScale: 2.0 });
+  const strutMat = metalMaterial(0x3a3f4c, 666, { panels: 2, wear: 0.6, rough: 0.45 });
   for (const x of [-6, -3, 0, 3, 6]) {
-    const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 4.4, 0.4), pillarMat);
-    pillar.position.set(x, 2.2, -3.7);
-    pillar.castShadow = true;
-    scene.add(pillar);
+    const strut = new THREE.Mesh(new THREE.BoxGeometry(0.4, 4.4, 0.4), strutMat);
+    strut.position.set(x, 2.2, -3.7);
+    strut.castShadow = true;
+    scene.add(strut);
   }
-  // hanging banners — woven cloth with fold shading
-  const bannerMat = texturedMat('fabric', 0x8f2038, 707, { roughness: 0.9, bumpScale: 1.0, side: THREE.DoubleSide });
-  for (const x of [-4.5, 1.5]) {
-    const banner = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 2.2), bannerMat);
-    banner.position.set(x, 2.6, -3.45);
-    scene.add(banner);
-  }
-  // front floor edge glow (stage boundary feel)
+  // holo ad panels (fabric-weave texture tinted neon, emissive so they read as screens)
+  const adColors = [[0x8f2038, 0xff3a6a], [0x0f3a5c, 0x2fd8ff]];
+  [-4.5, 1.5].forEach((x, i) => {
+    const { map } = getTextureSet('fabric', adColors[i][0], 707 + i);
+    const panel = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.1, 2.2),
+      new THREE.MeshStandardMaterial({ map, emissive: adColors[i][1], emissiveIntensity: 0.4, roughness: 0.7, side: THREE.DoubleSide })
+    );
+    panel.position.set(x, 2.6, -3.45);
+    scene.add(panel);
+  });
+  // front deck edge — energy boundary strip
   const edge = new THREE.Mesh(
     new THREE.BoxGeometry(15.4, 0.1, 0.15),
-    new THREE.MeshStandardMaterial({ color: 0xd8b56a, emissive: 0x654a10, emissiveIntensity: 0.6 })
+    new THREE.MeshStandardMaterial({ color: 0x66e0ff, emissive: 0x1a9ac0, emissiveIntensity: 0.9 })
   );
   edge.position.set(0, 0.02, 3.85);
   scene.add(edge);
 
-  // faint moon disc in the sky
-  const moon = new THREE.Mesh(
-    new THREE.CircleGeometry(2.2, 40),
-    new THREE.MeshBasicMaterial({ color: 0xcfd8ff, fog: false })
-  );
-  moon.position.set(-8, 11, -26);
-  scene.add(moon);
+  // Jupiter, huge over the Ganymede horizon
+  const jupiter = new THREE.Mesh(new THREE.CircleGeometry(5.2, 48), jupiterMaterial());
+  jupiter.position.set(-13, 9.5, -34);
+  scene.add(jupiter);
+
+  // star field
+  const starGeo = new THREE.BufferGeometry();
+  const starPos = [];
+  let sSeed = 12345;
+  const srnd = () => { sSeed = (sSeed * 16807) % 2147483647; return sSeed / 2147483647; };
+  for (let i = 0; i < 220; i++) {
+    starPos.push((srnd() - 0.5) * 90, 4 + srnd() * 30, -34 - srnd() * 6);
+  }
+  starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+  const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xcfd8ff, size: 0.09, fog: false }));
+  scene.add(stars);
 }
 
 // ===== src/ui.js =====
@@ -2956,11 +3149,21 @@ class Fighter {
     scene.add(this.rig.root);
 
     this.maxHealth = charDef.health;
+    // pilot power + tournament upgrades (arm/leg servo power)
+    const mods = charDef.mods || {};
+    this.armMul = mods.arm || 1;
+    this.legMul = mods.leg || 1;
     this.meter = 0; // super gauge 0..100, persists across rounds
     this.reset(0, 1);
   }
 
   addMeter(v) { this.meter = Math.min(100, Math.max(0, this.meter + v)); }
+
+  // leg-driven moves scale with leg servos, everything else with arm servos
+  dmgMulFor(mv) {
+    const legs = mv?.limbs && mv.limbs.length && mv.limbs.every((l) => l.startsWith('foot'));
+    return legs ? this.legMul : this.armMul;
+  }
 
   reset(x, facing) {
     this.pos = { x, y: 0 };
@@ -3112,6 +3315,7 @@ class Fighter {
     this.state = 'attack';
     this.stateT = 0;
     this.move = move;
+    this.lastMoveName = move.name; // dev/test hook — fast moves can finish within one slow frame
     this.moveT = 0;
     this.hitsLanded = 0;
     this.nextHitTime = move.startup;
@@ -3962,6 +4166,7 @@ class Game {
 
     // juggle damage scaling
     let dmg = atk.damage;
+    if (owner?.dmgMulFor) dmg *= owner.dmgMulFor(atk); // pilot power + arm/leg upgrades
     if (victim.state === 'launched') dmg *= Math.pow(0.82, Math.max(0, victim.juggleHits));
     if (counter) dmg *= 1.2;
 
@@ -4287,7 +4492,7 @@ class Game {
 
 
 const app = document.getElementById('app');
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
 renderer.shadowMap.enabled = true;
@@ -4316,20 +4521,31 @@ UI.init();
 
 // ---------------- app state ----------------
 const CHAR_IDS = ['chunli', 'nina', 'cammy', 'asuka', 'zangief', 'rmika'];
-let mode = 'title'; // title | charselect | fight | result
+let mode = 'title'; // title | story | charselect | shop | fight | result
 let game = null;
 let ai = null;
 let paused = false;
 let pauseIndex = 0;
 let menuIndex = 0;
 const menuOpts = [...document.querySelectorAll('.menuOpt')];
-const csCards = [...document.querySelectorAll('.csCard')];
+const csCards = [...document.querySelectorAll('#csGrid .csCard')];
+const pilotCards = [...document.querySelectorAll('#pilotGrid .csCard')];
 const csTitle = document.getElementById('csTitle');
 const charselectEl = document.getElementById('charselect');
+const csGridEl = document.getElementById('csGrid');
+const pilotGridEl = document.getElementById('pilotGrid');
+const storyScreenEl = document.getElementById('storyScreen');
+const storyTitleEl = document.getElementById('storyTitle');
+const storyTextEl = document.getElementById('storyText');
+const shopScreenEl = document.getElementById('shopScreen');
+const shopCreditsEl = document.getElementById('shopCredits');
+const shopListEl = document.getElementById('shopList');
+const resultHintEl = document.getElementById('resultHint');
 const pauseOpts = [...document.querySelectorAll('.pauseOpt')];
 const pauseRestartOpt = document.getElementById('pauseRestartOpt');
 
-const sel = { mode: 'cpu', phase: 'p1', p1: 0, p2: 1, p1Variant: 0, p2Variant: 0 };
+// phase: p1-pilot → p1-har → (p2-pilot → p2-har)
+const sel = { mode: 'cpu', phase: 'p1-pilot', p1: 0, p2: 1, p1Pilot: 0, p2Pilot: 1 };
 
 function setMenuSel(i) {
   menuIndex = (i + menuOpts.length) % menuOpts.length;
@@ -4342,50 +4558,233 @@ function setPauseSel(i) {
   pauseOpts.forEach((el, k) => el.classList.toggle('sel', k === pauseIndex));
 }
 
+// ---------------- tournament career (growth) ----------------
+// OMF-style upgrades: arm/leg servo power, drive train, armor plating
+const UPGRADES = [
+  { key: 'arm',   label: '팔 서보 파워',  desc: '펀치·잡기 데미지 +8%/Lv' },
+  { key: 'leg',   label: '다리 서보 파워', desc: '킥 데미지 +8%/Lv' },
+  { key: 'drv',   label: '구동계',        desc: '이동·점프 +5%/Lv' },
+  { key: 'armor', label: '장갑판',        desc: '최대 내구도 +8%/Lv' },
+];
+const UP_MAX = 5;
+const upCost = (lv) => 350 * (lv + 1);
+
+function loadCareer() {
+  try {
+    const c = JSON.parse(localStorage.getItem('har2097_career') || 'null');
+    if (c && c.up) return c;
+  } catch (e) { /* corrupted save → fresh start */ }
+  return { credits: 0, up: { arm: 0, leg: 0, drv: 0, armor: 0 } };
+}
+const career = loadCareer();
+function saveCareer() {
+  try { localStorage.setItem('har2097_career', JSON.stringify(career)); } catch (e) { /* private mode */ }
+}
+
+// ---------------- story (tournament ladder) ----------------
+const story = { active: false, stage: 0, ladder: [] };
+
+const STORY_INTRO = `서기 2097년. 국가는 무너졌고, 궤도 기업들이 지구를 나눠 가졌다.
+분쟁은 이제 전쟁이 아니라 — 링 위에서 끝난다.
+
+파일럿은 뉴럴 링크로 거대 로봇 HAR과 신경을 동기화해 싸운다.
+주최사 WAR가 내건 우승 상품은 단 하나, 가니메데 기지의 운영권.
+
+여섯 명의 파일럿이 초대장을 받았다. 결승 너머에서
+총수 크라이색이 비밀 프로토타입과 함께 기다리고 있다는 소문과 함께.`;
+
+const STAGE_BLURBS = [
+  '1회전 — 예선 링. 관중석은 반쯤 비어 있지만, 스폰서의 카메라는 전부 켜져 있다.',
+  '2회전 — 상대 진영이 당신의 기체 로그를 사들였다. 같은 수는 두 번 통하지 않는다.',
+  '준준결승 — 정비 크루가 속삭인다. "위쪽 경기는 전부 짜여 있어. 이기려면 압도해."',
+  '준결승 — 방송 시청률이 행성 기록을 갱신했다. WAR 본사가 당신을 주시하기 시작한다.',
+  '결승 — 마지막 공식 경기. 이기면 가니메데로 가는 셔틀이 대기 중이다.',
+  '??? — 시상식은 없었다. 격납고 문이 열리고, 크라이색이 프로토타입 NOVA를 기동한다.\n"규정은 내가 만든다. 소유권을 원하면 — 이겨 봐라."',
+];
+
+function pilotEnding(pilot) {
+  const lines = {
+    crystal: '크리스탈은 우승 트로피 대신 WAR의 봉인된 인사 기록을 요구했다. 부모의 이름은, 가니메데 승무원 명단에 있었다.',
+    steffan: '스테판은 상금을 전부 옛 정비 크루에게 나눠 주고, 더 무거운 기체의 설계도를 펼쳤다.',
+    milano: '밀라노는 시상대에서 내려오자마자 다음 시즌 제로G 레이스에 참가 신청을 냈다. "격투? 워밍업이었지."',
+    christian: '크리스천은 빚을 모두 갚고 남은 크레딧을 확인한 뒤, 처음으로 웃었다.',
+    shirro: '시로는 가니메데 기지를 구조 훈련 시설로 개조하겠다고 발표했다. 관중은 야유했고, 그는 개의치 않았다.',
+    angel: '엔젤은 우승 다음 날 사라졌다. WAR의 기밀 서버에는 접속 흔적만 남았다.',
+  };
+  return lines[pilot.id] || '챔피언의 이름이 가니메데의 밤하늘에 새겨졌다.';
+}
+
+function buildLadder() {
+  // 5 regular rungs (random pilot+HAR pairs, no repeat HARs) + NOVA boss
+  const hars = [...CHAR_IDS].sort(() => Math.random() - 0.5).slice(0, 5);
+  const ladder = hars.map((harId) => ({
+    har: harId,
+    pilot: PILOTS[Math.floor(Math.random() * PILOTS.length)],
+    boss: false,
+  }));
+  ladder.push({ har: 'nova', pilot: BOSS_PILOT, boss: true });
+  return ladder;
+}
+
+// ---------------- screens ----------------
+let storyNext = null; // Enter callback for the story screen
+
+function showStory(title, text, next) {
+  hideAllScreens();
+  mode = 'story';
+  storyTitleEl.textContent = title;
+  storyTextEl.textContent = text;
+  storyScreenEl.classList.add('on');
+  storyNext = next;
+}
+
+function hideAllScreens() {
+  UI.showTitle(false);
+  UI.showResult(false);
+  charselectEl.classList.remove('on');
+  storyScreenEl.classList.remove('on');
+  shopScreenEl.classList.remove('on');
+}
+
+// ---------------- shop ----------------
+let shopIndex = 0;
+
+function shopItems() {
+  return [...UPGRADES.map((u) => {
+    const lv = career.up[u.key];
+    return { ...u, lv, cost: lv >= UP_MAX ? null : upCost(lv) };
+  }), { key: 'go', label: '▶ 다음 경기 출전', desc: '', lv: null, cost: null }];
+}
+
+function renderShop() {
+  shopCreditsEl.textContent = `보유 크레딧: ${career.credits} ¢`;
+  shopListEl.innerHTML = shopItems().map((it, i) => {
+    const lv = it.lv == null ? '' : `<span class="lv">Lv ${it.lv}/${UP_MAX}</span>`;
+    const cost = it.key === 'go' ? '' : it.cost == null ? '<span class="cost">MAX</span>' : `<span class="cost">${it.cost} ¢</span>`;
+    const maxCls = it.cost == null && it.key !== 'go' ? ' max' : '';
+    return `<div class="shopItem${i === shopIndex ? ' sel' : ''}${maxCls}">` +
+      `<span>${it.label} <small style="color:#8a7fb0">${it.desc}</small></span><span>${lv} ${cost}</span></div>`;
+  }).join('');
+}
+
+function showShop() {
+  hideAllScreens();
+  mode = 'shop';
+  shopIndex = shopItems().length - 1; // default on "next match"
+  shopScreenEl.classList.add('on');
+  renderShop();
+}
+
+function shopConfirm() {
+  const it = shopItems()[shopIndex];
+  if (it.key === 'go') {
+    Sound.announce();
+    startStoryFight();
+    return;
+  }
+  if (it.cost != null && career.credits >= it.cost) {
+    career.credits -= it.cost;
+    career.up[it.key]++;
+    saveCareer();
+    Sound.announce();
+  } else {
+    Sound.beep();
+  }
+  renderShop();
+}
+
+// ---------------- selection flow ----------------
 function showCharSelect(vsMode) {
   sel.mode = vsMode;
-  sel.phase = 'p1';
-  sel.p1 = 0;
-  sel.p2 = 1;
+  sel.p1 = 0; sel.p2 = 1;
+  sel.p1Pilot = 0; sel.p2Pilot = 1;
+  hideAllScreens();
+  if (vsMode === 'cpu') {
+    story.active = true;
+    story.stage = 0;
+    story.ladder = buildLadder();
+    showStory('2097 — 침공 없는 전쟁', STORY_INTRO, openPilotSelect);
+    return;
+  }
+  story.active = false;
+  openPilotSelect();
+}
+
+function openPilotSelect() {
+  hideAllScreens();
   mode = 'charselect';
-  UI.showTitle(false);
+  sel.phase = 'p1-pilot';
   charselectEl.classList.add('on');
-  csTitle.textContent = 'P1 — 캐릭터 선택';
   renderCsCursor();
 }
 
+function csLabel() {
+  const who = sel.phase.startsWith('p1') ? 'P1' : (sel.mode === 'practice' ? '더미' : 'P2');
+  return sel.phase.endsWith('-pilot') ? `${who} — 파일럿 선택` : `${who} — HAR(로봇) 선택`;
+}
+
 function renderCsCursor() {
+  const pilotPhase = sel.phase.endsWith('-pilot');
+  pilotGridEl.style.display = pilotPhase ? 'flex' : 'none';
+  csGridEl.style.display = pilotPhase ? 'none' : 'flex';
+  csTitle.textContent = csLabel();
+  const isP2 = sel.phase.startsWith('p2');
+  pilotCards.forEach((el, i) => {
+    el.classList.toggle('selP1', !isP2 && i === sel.p1Pilot);
+    el.classList.toggle('selP2', isP2 && i === sel.p2Pilot);
+  });
   csCards.forEach((el, i) => {
-    el.classList.toggle('selP1', i === sel.p1);
-    el.classList.toggle('selP2', mode === 'charselect' && sel.phase !== 'p1' && i === sel.p2);
+    el.classList.toggle('selP1', !isP2 && i === sel.p1);
+    el.classList.toggle('selP2', isP2 && i === sel.p2);
   });
 }
 
-function csMove(who, delta) {
+function csKey() {
+  // index key for the active phase
+  return sel.phase === 'p1-pilot' ? 'p1Pilot' : sel.phase === 'p1-har' ? 'p1'
+    : sel.phase === 'p2-pilot' ? 'p2Pilot' : 'p2';
+}
+
+function csMove(delta) {
   Sound.beep();
-  const n = CHAR_IDS.length;
-  if (who === 'p1') sel.p1 = (sel.p1 + delta + n) % n;
-  else sel.p2 = (sel.p2 + delta + n) % n;
+  const n = sel.phase.endsWith('-pilot') ? PILOTS.length : CHAR_IDS.length;
+  const k = csKey();
+  sel[k] = (sel[k] + delta + n) % n;
   renderCsCursor();
 }
 
 function csConfirm() {
   Sound.announce();
-  if (sel.phase === 'p1') {
-    if (sel.mode === 'cpu') {
-      sel.phase = 'cpu';
-      csTitle.textContent = 'CPU 상대 결정 중...';
-      sel.p2 = Math.floor(Math.random() * CHAR_IDS.length);
-      renderCsCursor();
-      setTimeout(() => { if (mode === 'charselect') startFight(); }, 550);
-    } else {
-      sel.phase = 'p2';
-      csTitle.textContent = sel.mode === 'practice' ? '더미 — 캐릭터 선택' : 'P2 — 캐릭터 선택';
-      renderCsCursor();
-    }
-  } else if (sel.phase === 'p2') {
+  if (sel.phase === 'p1-pilot') { sel.phase = 'p1-har'; renderCsCursor(); return; }
+  if (sel.phase === 'p1-har') {
+    if (sel.mode === 'cpu') { startStoryFight(); return; }
+    sel.phase = 'p2-pilot'; renderCsCursor(); return;
+  }
+  if (sel.phase === 'p2-pilot') { sel.phase = 'p2-har'; renderCsCursor(); return; }
+  if (sel.phase === 'p2-har') {
     if (sel.mode === 'practice') startPractice(); else startFight();
   }
+}
+
+// ---------------- loadout: pilot stats + upgrades onto a HAR ----------------
+function applyLoadout(charDef, pilot, ups) {
+  const drv = ups ? 1 + 0.05 * ups.drv : 1;
+  const hpUp = ups ? 1 + 0.08 * ups.armor : 1;
+  const armUp = ups ? 1 + 0.08 * ups.arm : 1;
+  const legUp = ups ? 1 + 0.08 * ups.leg : 1;
+  return {
+    ...charDef,
+    health: Math.round(charDef.health * pilot.endurance * hpUp),
+    walkF: charDef.walkF * pilot.agility * drv,
+    walkB: charDef.walkB * pilot.agility * drv,
+    jumpVy: charDef.jumpVy * (0.94 + 0.06 * pilot.agility * drv),
+    mods: { arm: pilot.power * armUp, leg: pilot.power * legUp },
+    pilot,
+  };
+}
+
+function fighterLabel(charDef) {
+  return `${charDef.displayName} · ${charDef.pilot ? charDef.pilot.name : '?'}`;
 }
 
 function moveListHtml(fighter, label) {
@@ -4407,59 +4806,90 @@ function fillPauseTable() {
   pauseRestartOpt.textContent = game.practiceMode ? '위치 · 체력 초기화' : '라운드 재시작';
 }
 
-async function startFight() {
+// ---------------- fight starts ----------------
+function beginMatch(charA, charB, opts = {}) {
   if (game) game.dispose();
-  charselectEl.classList.remove('on');
+  hideAllScreens();
   const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
-  const p2 = new CompositeController(new KeyboardController(P2_KEYS), new PadController(1));
-  const charA = CHARACTERS[CHAR_IDS[sel.p1]];
-  const charB = CHARACTERS[CHAR_IDS[sel.p2]];
-  game = new Game(scene, fx, charA, charB, p1, p2);
+  const p2ctrl = opts.practice
+    ? new VirtualController()
+    : new CompositeController(new KeyboardController(P2_KEYS), new PadController(1));
+  game = new Game(scene, fx, charA, charB, p1, p2ctrl, opts.practice ? { practice: true } : undefined);
   game.camera = camera;
   window.__game = game; // dev/test hook
-  ai = sel.mode === 'cpu' ? new AI(game.fighters[1], game.fighters[0]) : null;
-  game.onMatchEnd = (champ) => {
+  ai = opts.cpu ? new AI(game.fighters[1], game.fighters[0]) : null;
+  game.onMatchEnd = opts.onEnd || ((champ) => {
     mode = 'result';
+    resultHintEl.innerHTML = '<kbd>Enter</kbd> 다시 대전 &nbsp;|&nbsp; <kbd>Esc</kbd> 타이틀로';
     UI.showResult(true, `${champ.char.displayName} WINS!`);
-  };
-  UI.setPracticeMode(false);
-  UI.setNames(charA.displayName, charB.displayName + (sel.mode === 'cpu' ? ' (CPU)' : ''));
+  });
+  UI.setPracticeMode(!!opts.practice);
+  UI.setNames(fighterLabel(charA), fighterLabel(charB) + (opts.cpu ? ' (CPU)' : opts.practice ? ' (더미)' : ''));
   UI.showResult(false);
   UI.showHud(true);
+  if (opts.practice) {
+    UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+    UI.setPracticePanel(moveListHtml(game.fighters[0], 'PLAYER 1'), false);
+  }
   fillPauseTable();
   mode = 'fight';
 }
 
+function startStoryFight() {
+  const rung = story.ladder[story.stage];
+  const meChar = applyLoadout(CHARACTERS[CHAR_IDS[sel.p1]], PILOTS[sel.p1Pilot], career.up);
+  // CPU scales gently with ladder height; the boss brings a heavier chassis
+  const cpuBase = rung.har === 'nova' ? NOVA : CHARACTERS[rung.har];
+  const cpuUps = { arm: story.stage, leg: story.stage, drv: Math.min(2, story.stage), armor: story.stage };
+  const cpuChar = applyLoadout(cpuBase, rung.pilot, cpuUps);
+  beginMatch(meChar, cpuChar, { cpu: true, onEnd: (champ) => onStoryMatchEnd(champ) });
+}
+
+function onStoryMatchEnd(champ) {
+  const playerWon = champ === game.fighters[0];
+  mode = 'result';
+  if (!playerWon) {
+    resultHintEl.innerHTML = '<kbd>Enter</kbd> 재도전 &nbsp;|&nbsp; <kbd>Esc</kbd> 타이틀로';
+    UI.showResult(true, `${champ.char.displayName} WINS!`);
+    return;
+  }
+  // credits: base + ladder bonus + perfect bonus
+  const me = game.fighters[0];
+  const reward = 300 + story.stage * 80 + (me.health >= me.maxHealth ? 200 : 0);
+  career.credits += reward;
+  saveCareer();
+  const wasBoss = story.ladder[story.stage].boss;
+  story.stage++;
+  if (wasBoss) {
+    const pilot = PILOTS[sel.p1Pilot];
+    story.active = false;
+    showStory('CHAMPION OF GANYMEDE', `${pilotEnding(pilot)}\n\n(+${reward} ¢)`, backToTitle);
+    return;
+  }
+  const blurb = STAGE_BLURBS[Math.min(story.stage, STAGE_BLURBS.length - 1)];
+  showStory(`${story.stage}승 — 보상 +${reward} ¢`, blurb, showShop);
+}
+
+async function startFight() {
+  const charA = applyLoadout(CHARACTERS[CHAR_IDS[sel.p1]], PILOTS[sel.p1Pilot], null);
+  const charB = applyLoadout(CHARACTERS[CHAR_IDS[sel.p2]], PILOTS[sel.p2Pilot], null);
+  beginMatch(charA, charB, {});
+}
+
 async function startPractice() {
-  if (game) game.dispose();
-  charselectEl.classList.remove('on');
-  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
-  const dummyCtrl = new VirtualController();
-  const charA = CHARACTERS[CHAR_IDS[sel.p1]];
-  const charB = CHARACTERS[CHAR_IDS[sel.p2]];
-  game = new Game(scene, fx, charA, charB, p1, dummyCtrl, { practice: true });
-  game.camera = camera;
-  window.__game = game;
-  ai = null; // dummy AI (if enabled) is driven internally by Game in practice mode
-  UI.setPracticeMode(true);
-  UI.setNames(charA.displayName, charB.displayName + ' (더미)');
-  UI.showResult(false);
-  UI.showHud(true);
-  UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
-  UI.setPracticePanel(moveListHtml(game.fighters[0], 'PLAYER 1'), false);
-  fillPauseTable();
-  mode = 'fight';
+  const charA = applyLoadout(CHARACTERS[CHAR_IDS[sel.p1]], PILOTS[sel.p1Pilot], null);
+  const charB = applyLoadout(CHARACTERS[CHAR_IDS[sel.p2]], PILOTS[sel.p2Pilot], null);
+  beginMatch(charA, charB, { practice: true });
 }
 
 function backToTitle() {
   if (game) { game.dispose(); game = null; }
   ai = null;
   paused = false;
+  story.active = false;
   UI.showHud(false);
-  UI.showResult(false);
   UI.showPause(false);
-  UI.setPracticeMode(false);
-  charselectEl.classList.remove('on');
+  hideAllScreens();
   UI.showTitle(true);
   mode = 'title';
 }
@@ -4478,6 +4908,8 @@ function runPauseAction(act) {
     if (game.practiceMode) {
       game.resetPracticePositions();
       UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+    } else if (story.active && sel.mode === 'cpu') {
+      startStoryFight();
     } else {
       startFight();
     }
@@ -4535,10 +4967,17 @@ window.addEventListener('keydown', (e) => {
     else if (e.code === 'Digit2') showCharSelect('2p');
     else if (e.code === 'Digit3') showCharSelect('practice');
     else if (e.code === 'Enter' || e.code === 'Space') showCharSelect(menuOpts[menuIndex].dataset.mode);
+  } else if (mode === 'story') {
+    if (['Enter', 'KeyJ', 'Space'].includes(e.code)) { const fn = storyNext; storyNext = null; fn?.(); }
+    else if (e.code === 'Escape') backToTitle();
+  } else if (mode === 'shop') {
+    if (['KeyW', 'ArrowUp'].includes(e.code)) { shopIndex = (shopIndex + shopItems().length - 1) % shopItems().length; Sound.beep(); renderShop(); }
+    else if (['KeyS', 'ArrowDown'].includes(e.code)) { shopIndex = (shopIndex + 1) % shopItems().length; Sound.beep(); renderShop(); }
+    else if (['Enter', 'KeyJ', 'Space'].includes(e.code)) shopConfirm();
+    else if (e.code === 'Escape') backToTitle();
   } else if (mode === 'charselect') {
-    const isP1Turn = sel.phase === 'p1';
-    if (['KeyA', 'ArrowLeft'].includes(e.code)) csMove(isP1Turn ? 'p1' : 'p2', -1);
-    else if (['KeyD', 'ArrowRight'].includes(e.code)) csMove(isP1Turn ? 'p1' : 'p2', 1);
+    if (['KeyA', 'ArrowLeft'].includes(e.code)) csMove(-1);
+    else if (['KeyD', 'ArrowRight'].includes(e.code)) csMove(1);
     else if (['Enter', 'KeyJ', 'Space'].includes(e.code)) csConfirm();
     else if (e.code === 'Escape') backToTitle();
   } else if (mode === 'fight') {
@@ -4571,7 +5010,10 @@ window.addEventListener('keydown', (e) => {
       }
     }
   } else if (mode === 'result') {
-    if (e.code === 'Enter') showCharSelect(sel.mode);
+    if (e.code === 'Enter') {
+      if (story.active && sel.mode === 'cpu') startStoryFight(); // retry the rung
+      else showCharSelect(sel.mode);
+    }
     if (e.code === 'Escape') backToTitle();
   }
 });
@@ -4584,9 +5026,17 @@ menuOpts.forEach((el, i) => {
 csCards.forEach((el, i) => {
   el.style.pointerEvents = 'auto';
   el.addEventListener('click', () => {
-    if (mode !== 'charselect') return;
-    if (sel.phase === 'p1') { sel.p1 = i; renderCsCursor(); csConfirm(); }
-    else if (sel.phase === 'p2') { sel.p2 = i; renderCsCursor(); csConfirm(); }
+    if (mode !== 'charselect' || !sel.phase.endsWith('-har')) return;
+    sel[sel.phase.startsWith('p1') ? 'p1' : 'p2'] = i;
+    renderCsCursor(); csConfirm();
+  });
+});
+pilotCards.forEach((el, i) => {
+  el.style.pointerEvents = 'auto';
+  el.addEventListener('click', () => {
+    if (mode !== 'charselect' || !sel.phase.endsWith('-pilot')) return;
+    sel[sel.phase.startsWith('p1') ? 'p1Pilot' : 'p2Pilot'] = i;
+    renderCsCursor(); csConfirm();
   });
 });
 pauseOpts.forEach((el, i) => {
@@ -4604,22 +5054,25 @@ function padMenus() {
     if (e0.down) { setMenuSel(menuIndex + 1); Sound.beep(); }
     if (e0.confirm) showCharSelect(menuOpts[menuIndex].dataset.mode);
   } else if (mode === 'charselect') {
-    if (sel.phase === 'p1') {
-      if (e0.left) csMove('p1', -1);
-      if (e0.right) csMove('p1', 1);
-      if (e0.confirm) csConfirm();
-    } else if (sel.phase === 'p2') {
-      const e = sel.mode === '2p' ? e1 : e0;
-      if (e.left) csMove('p2', -1);
-      if (e.right) csMove('p2', 1);
-      if (e.confirm) csConfirm();
-    }
+    const e = sel.mode === '2p' && sel.phase.startsWith('p2') ? e1 : e0;
+    if (e.left) csMove(-1);
+    if (e.right) csMove(1);
+    if (e.confirm) csConfirm();
+  } else if (mode === 'story') {
+    if (e0.confirm) { const fn = storyNext; storyNext = null; fn?.(); }
+  } else if (mode === 'shop') {
+    if (e0.up) { shopIndex = (shopIndex + shopItems().length - 1) % shopItems().length; Sound.beep(); renderShop(); }
+    if (e0.down) { shopIndex = (shopIndex + 1) % shopItems().length; Sound.beep(); renderShop(); }
+    if (e0.confirm) shopConfirm();
   } else if (mode === 'fight' && paused) {
     if (e0.up) { setPauseSel(pauseIndex - 1); Sound.beep(); }
     if (e0.down) { setPauseSel(pauseIndex + 1); Sound.beep(); }
     if (e0.confirm) runPauseAction(pauseOpts[pauseIndex].dataset.act);
   } else if (mode === 'result') {
-    if (e0.confirm) showCharSelect(sel.mode);
+    if (e0.confirm) {
+      if (story.active && sel.mode === 'cpu') startStoryFight();
+      else showCharSelect(sel.mode);
+    }
   }
 }
 
@@ -4656,7 +5109,10 @@ let acc = 0;
 
 function frame(now) {
   requestAnimationFrame(frame);
-  let dt = Math.min(0.1, (now - last) / 1000);
+  // clamp guards against huge catch-ups after tab suspend, but stays generous
+  // enough that slow renderers (software GL/CI) keep wall-accurate game time —
+  // the fixed-step loop below just runs more physics steps per frame
+  let dt = Math.min(0.25, (now - last) / 1000);
   last = now;
 
   pollGamepads();
@@ -4665,7 +5121,7 @@ function frame(now) {
 
   if (!paused) {
     tickInputClock(dt);
-    if (mode === 'title' || mode === 'charselect' || mode === 'result') padMenus();
+    if (['title', 'charselect', 'result', 'story', 'shop'].includes(mode)) padMenus();
     if (game && mode !== 'result') {
       acc += fighterDt;
       while (acc >= STEP) {

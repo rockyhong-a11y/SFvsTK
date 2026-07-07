@@ -11,68 +11,50 @@ await page.goto('http://localhost:8321/index.html');
 await page.waitForTimeout(600);
 await page.keyboard.press('Digit2');
 await page.waitForTimeout(400);
-await page.keyboard.press('Enter'); // P1 chunli
+await page.keyboard.press('Enter'); // P1 pilot
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P1 electra
 await page.waitForTimeout(300);
-await page.keyboard.press('Enter'); // P2 nina
-await page.waitForTimeout(2300);
+await page.keyboard.press('Enter'); // P2 pilot
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P2 katana
+// wait for the round to actually go live (slow software-GL frames make fixed
+// waits unreliable — first frames also pay shader compilation)
+for (let i = 0; i < 100; i++) {
+  const live = await page.evaluate(() => window.__game && __game.phase === 'fight' && __game.fighters[0].state === 'idle');
+  if (live) break;
+  await page.waitForTimeout(100);
+}
 
-const moveName = () => page.evaluate(() => __game.fighters[0].move?.name || '');
+// wait until P1 can act again, press (optionally with a held direction), then
+// poll until the buffered press turns into a move
+async function pressAndRead(key, holdKey) {
+  for (let i = 0; i < 40; i++) {
+    const ready = await page.evaluate(() => !__game.fighters[0].move && __game.fighters[0].canAct());
+    if (ready) break;
+    await page.waitForTimeout(80);
+  }
+  if (holdKey) { await page.keyboard.down(holdKey); await page.waitForTimeout(60); }
+  await page.evaluate(() => { __game.fighters[0].lastMoveName = ''; });
+  await page.keyboard.press(key);
+  let name = '';
+  for (let i = 0; i < 20; i++) {
+    // lastMoveName survives fast moves that start+finish inside one slow frame
+    name = await page.evaluate(() => __game.fighters[0].lastMoveName || '');
+    if (name) break;
+    await page.waitForTimeout(60);
+  }
+  if (holdKey) await page.keyboard.up(holdKey);
+  return name;
+}
 
-// neutral punch
-await page.keyboard.press('KeyJ');
-await page.waitForTimeout(50);
-const neutralPunch = await moveName();
-await page.waitForTimeout(300);
-
-// forward+punch (P1 faces right, so forward = D)
-await page.keyboard.down('KeyD');
-await page.waitForTimeout(20);
-await page.keyboard.press('KeyJ');
-await page.waitForTimeout(30);
-const fwdPunch = await moveName();
-await page.keyboard.up('KeyD');
-await page.waitForTimeout(300);
-
-// back+punch
-await page.keyboard.down('KeyA');
-await page.waitForTimeout(20);
-await page.keyboard.press('KeyJ');
-await page.waitForTimeout(30);
-const backPunch = await moveName();
-await page.keyboard.up('KeyA');
-await page.waitForTimeout(300);
-
-// neutral kick
-await page.keyboard.press('KeyK');
-await page.waitForTimeout(30);
-const neutralKick = await moveName();
-await page.waitForTimeout(400);
-
-// forward+kick
-await page.keyboard.down('KeyD');
-await page.waitForTimeout(20);
-await page.keyboard.press('KeyK');
-await page.waitForTimeout(30);
-const fwdKick = await moveName();
-await page.keyboard.up('KeyD');
-await page.waitForTimeout(400);
-
-// back+kick
-await page.keyboard.down('KeyA');
-await page.waitForTimeout(20);
-await page.keyboard.press('KeyK');
-await page.waitForTimeout(30);
-const backKick = await moveName();
-await page.keyboard.up('KeyA');
-await page.waitForTimeout(400);
-
-// crouch+punch still works (existing behavior not broken)
-await page.keyboard.down('KeyS');
-await page.waitForTimeout(20);
-await page.keyboard.press('KeyJ');
-await page.waitForTimeout(30);
-const crouchPunch = await moveName();
-await page.keyboard.up('KeyS');
+const neutralPunch = await pressAndRead('KeyJ');
+const fwdPunch = await pressAndRead('KeyJ', 'KeyD'); // P1 faces right, so forward = D
+const backPunch = await pressAndRead('KeyJ', 'KeyA');
+const neutralKick = await pressAndRead('KeyK');
+const fwdKick = await pressAndRead('KeyK', 'KeyD');
+const backKick = await pressAndRead('KeyK', 'KeyA');
+const crouchPunch = await pressAndRead('KeyJ', 'KeyS'); // existing behavior not broken
 
 console.log('neutral punch:', JSON.stringify(neutralPunch));
 console.log('forward punch:', JSON.stringify(fwdPunch));

@@ -13,9 +13,13 @@ await page.screenshot({ path: SHOT + '/40-mobile-title.png' });
 await page.keyboard.press('Digit2');
 await page.waitForTimeout(400);
 await page.screenshot({ path: SHOT + '/41-mobile-charselect.png' });
-await page.keyboard.press('Enter');
+await page.keyboard.press('Enter'); // P1 pilot
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P1 HAR
 await page.waitForTimeout(300);
-await page.keyboard.press('Enter');
+await page.keyboard.press('Enter'); // P2 pilot
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P2 HAR
 await page.waitForTimeout(2300);
 await page.screenshot({ path: SHOT + '/42-mobile-fight.png' });
 
@@ -26,6 +30,10 @@ await page2.goto('http://localhost:8321/index.html');
 await page2.waitForTimeout(600);
 await page2.keyboard.press('Digit1');
 await page2.waitForTimeout(400);
+await page2.keyboard.press('Enter'); // skip story intro
+await page2.waitForTimeout(250);
+await page2.keyboard.press('Enter'); // pilot
+await page2.waitForTimeout(250);
 await page2.keyboard.press('Enter');
 await page2.waitForTimeout(2300);
 await page2.screenshot({ path: SHOT + '/43-mobile-landscape-fight.png' });

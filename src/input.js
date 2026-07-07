@@ -1,14 +1,22 @@
 // Keyboard + Gamepad state, per-player virtual controllers with a small input buffer.
 const down = new Set();
-const pressedAt = new Map(); // code -> game time of press
+const pressedAt = new Map(); // code -> { t: game time, f: frame no } of press
 
 let gameTime = 0;
-export function tickInputClock(dt) { gameTime += dt; }
+let frameNo = 0;
+export function tickInputClock(dt) { gameTime += dt; frameNo++; }
+
+// a press is buffered for BUFFER seconds of game time, but never expires before
+// the loop has processed at least one frame after it landed — on slow renderers
+// (software GL) a frame gap can exceed BUFFER and quick taps would vanish
+function freshPress(rec) {
+  return rec !== undefined && (gameTime - rec.t <= BUFFER || frameNo <= rec.f + 1);
+}
 
 window.addEventListener('keydown', (e) => {
   if (e.repeat) return;
   down.add(e.code);
-  pressedAt.set(e.code, gameTime);
+  pressedAt.set(e.code, { t: gameTime, f: frameNo });
 });
 window.addEventListener('keyup', (e) => down.delete(e.code));
 window.addEventListener('blur', () => down.clear());
@@ -23,7 +31,7 @@ const PAD_BTN = { 0: 'skill', 1: 'grab', 2: 'punch', 3: 'kick', 4: 'super', 5: '
 const padState = [null, null].map(() => ({
   connected: false,
   held: new Set(),
-  pressedAt: new Map(), // action -> time
+  pressedAt: new Map(), // action -> { t, f }
   prevBtns: [],
   prevDirs: {},
 }));
@@ -45,7 +53,7 @@ export function pollGamepads() {
     };
     for (const [act, on] of Object.entries(dirs)) {
       if (on) st.held.add(act);
-      if (on && !st.prevDirs[act]) st.pressedAt.set(act, gameTime);
+      if (on && !st.prevDirs[act]) st.pressedAt.set(act, { t: gameTime, f: frameNo });
     }
     st.prevDirs = dirs;
 
@@ -53,7 +61,7 @@ export function pollGamepads() {
       const b = gp.buttons[btn];
       const on = !!(b && b.pressed);
       if (on) st.held.add(act);
-      if (on && !st.prevBtns[btn]) st.pressedAt.set(act, gameTime);
+      if (on && !st.prevBtns[btn]) st.pressedAt.set(act, { t: gameTime, f: frameNo });
       st.prevBtns[btn] = on;
     }
   }
@@ -67,12 +75,10 @@ export function padMenuEdges(i) {
   const out = { left: false, right: false, up: false, down: false, confirm: false };
   if (!st) return out;
   for (const act of ['left', 'right', 'up', 'down']) {
-    const t = st.pressedAt.get(act);
-    if (t !== undefined && gameTime - t <= BUFFER) { out[act] = true; st.pressedAt.delete(act); }
+    if (freshPress(st.pressedAt.get(act))) { out[act] = true; st.pressedAt.delete(act); }
   }
   for (const act of ['skill', 'punch', 'grab', 'kick']) {
-    const t = st.pressedAt.get(act);
-    if (t !== undefined && gameTime - t <= BUFFER) { out.confirm = true; st.pressedAt.delete(act); }
+    if (freshPress(st.pressedAt.get(act))) { out.confirm = true; st.pressedAt.delete(act); }
   }
   return out;
 }
@@ -84,10 +90,7 @@ export class KeyboardController {
     return (this.map[action] || []).some((c) => down.has(c));
   }
   pressed(action) {
-    return (this.map[action] || []).some((c) => {
-      const t = pressedAt.get(c);
-      return t !== undefined && gameTime - t <= BUFFER;
-    });
+    return (this.map[action] || []).some((c) => freshPress(pressedAt.get(c)));
   }
   consume(action) {
     for (const c of this.map[action] || []) pressedAt.delete(c);
@@ -99,8 +102,7 @@ export class PadController {
   constructor(index) { this.index = index; }
   held(action) { return padState[this.index].held.has(action); }
   pressed(action) {
-    const t = padState[this.index].pressedAt.get(action);
-    return t !== undefined && gameTime - t <= BUFFER;
+    return freshPress(padState[this.index].pressedAt.get(action));
   }
   consume(action) { padState[this.index].pressedAt.delete(action); }
   update() {}
@@ -123,11 +125,10 @@ export class VirtualController {
   }
   hold(action, on = true) { on ? this.helds.add(action) : this.helds.delete(action); }
   clearHolds() { this.helds.clear(); }
-  tap(action) { this.taps.set(action, gameTime + BUFFER); }
+  tap(action) { this.taps.set(action, { t: gameTime, f: frameNo }); }
   held(action) { return this.helds.has(action); }
   pressed(action) {
-    const t = this.taps.get(action);
-    return t !== undefined && gameTime <= t;
+    return freshPress(this.taps.get(action));
   }
   consume(action) { this.taps.delete(action); }
   update() {}

@@ -346,6 +346,7 @@ export class Game {
 
     // juggle damage scaling
     let dmg = atk.damage;
+    if (owner?.dmgMulFor) dmg *= owner.dmgMulFor(atk); // pilot power + arm/leg upgrades
     if (victim.state === 'launched') dmg *= Math.pow(0.82, Math.max(0, victim.juggleHits));
     if (counter) dmg *= 1.2;
 

@@ -1,7 +1,7 @@
 // Bootstrap: renderer, camera, title/char-select flow, gamepad polling, fixed-step loop.
 import * as THREE from 'three';
 import { buildStage, WALL_X } from './stage.js';
-import { CHARACTERS } from './moves.js';
+import { CHARACTERS, PILOTS, BOSS_PILOT, NOVA } from './moves.js';
 import { Game } from './game.js';
 import { FX } from './fx.js';
 import { AI } from './ai.js';
@@ -13,7 +13,7 @@ import {
 } from './input.js';
 
 const app = document.getElementById('app');
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
 renderer.shadowMap.enabled = true;
@@ -42,20 +42,31 @@ UI.init();
 
 // ---------------- app state ----------------
 const CHAR_IDS = ['chunli', 'nina', 'cammy', 'asuka', 'zangief', 'rmika'];
-let mode = 'title'; // title | charselect | fight | result
+let mode = 'title'; // title | story | charselect | shop | fight | result
 let game = null;
 let ai = null;
 let paused = false;
 let pauseIndex = 0;
 let menuIndex = 0;
 const menuOpts = [...document.querySelectorAll('.menuOpt')];
-const csCards = [...document.querySelectorAll('.csCard')];
+const csCards = [...document.querySelectorAll('#csGrid .csCard')];
+const pilotCards = [...document.querySelectorAll('#pilotGrid .csCard')];
 const csTitle = document.getElementById('csTitle');
 const charselectEl = document.getElementById('charselect');
+const csGridEl = document.getElementById('csGrid');
+const pilotGridEl = document.getElementById('pilotGrid');
+const storyScreenEl = document.getElementById('storyScreen');
+const storyTitleEl = document.getElementById('storyTitle');
+const storyTextEl = document.getElementById('storyText');
+const shopScreenEl = document.getElementById('shopScreen');
+const shopCreditsEl = document.getElementById('shopCredits');
+const shopListEl = document.getElementById('shopList');
+const resultHintEl = document.getElementById('resultHint');
 const pauseOpts = [...document.querySelectorAll('.pauseOpt')];
 const pauseRestartOpt = document.getElementById('pauseRestartOpt');
 
-const sel = { mode: 'cpu', phase: 'p1', p1: 0, p2: 1, p1Variant: 0, p2Variant: 0 };
+// phase: p1-pilot → p1-har → (p2-pilot → p2-har)
+const sel = { mode: 'cpu', phase: 'p1-pilot', p1: 0, p2: 1, p1Pilot: 0, p2Pilot: 1 };
 
 function setMenuSel(i) {
   menuIndex = (i + menuOpts.length) % menuOpts.length;
@@ -68,50 +79,233 @@ function setPauseSel(i) {
   pauseOpts.forEach((el, k) => el.classList.toggle('sel', k === pauseIndex));
 }
 
+// ---------------- tournament career (growth) ----------------
+// OMF-style upgrades: arm/leg servo power, drive train, armor plating
+const UPGRADES = [
+  { key: 'arm',   label: '팔 서보 파워',  desc: '펀치·잡기 데미지 +8%/Lv' },
+  { key: 'leg',   label: '다리 서보 파워', desc: '킥 데미지 +8%/Lv' },
+  { key: 'drv',   label: '구동계',        desc: '이동·점프 +5%/Lv' },
+  { key: 'armor', label: '장갑판',        desc: '최대 내구도 +8%/Lv' },
+];
+const UP_MAX = 5;
+const upCost = (lv) => 350 * (lv + 1);
+
+function loadCareer() {
+  try {
+    const c = JSON.parse(localStorage.getItem('har2097_career') || 'null');
+    if (c && c.up) return c;
+  } catch (e) { /* corrupted save → fresh start */ }
+  return { credits: 0, up: { arm: 0, leg: 0, drv: 0, armor: 0 } };
+}
+const career = loadCareer();
+function saveCareer() {
+  try { localStorage.setItem('har2097_career', JSON.stringify(career)); } catch (e) { /* private mode */ }
+}
+
+// ---------------- story (tournament ladder) ----------------
+const story = { active: false, stage: 0, ladder: [] };
+
+const STORY_INTRO = `서기 2097년. 국가는 무너졌고, 궤도 기업들이 지구를 나눠 가졌다.
+분쟁은 이제 전쟁이 아니라 — 링 위에서 끝난다.
+
+파일럿은 뉴럴 링크로 거대 로봇 HAR과 신경을 동기화해 싸운다.
+주최사 WAR가 내건 우승 상품은 단 하나, 가니메데 기지의 운영권.
+
+여섯 명의 파일럿이 초대장을 받았다. 결승 너머에서
+총수 크라이색이 비밀 프로토타입과 함께 기다리고 있다는 소문과 함께.`;
+
+const STAGE_BLURBS = [
+  '1회전 — 예선 링. 관중석은 반쯤 비어 있지만, 스폰서의 카메라는 전부 켜져 있다.',
+  '2회전 — 상대 진영이 당신의 기체 로그를 사들였다. 같은 수는 두 번 통하지 않는다.',
+  '준준결승 — 정비 크루가 속삭인다. "위쪽 경기는 전부 짜여 있어. 이기려면 압도해."',
+  '준결승 — 방송 시청률이 행성 기록을 갱신했다. WAR 본사가 당신을 주시하기 시작한다.',
+  '결승 — 마지막 공식 경기. 이기면 가니메데로 가는 셔틀이 대기 중이다.',
+  '??? — 시상식은 없었다. 격납고 문이 열리고, 크라이색이 프로토타입 NOVA를 기동한다.\n"규정은 내가 만든다. 소유권을 원하면 — 이겨 봐라."',
+];
+
+function pilotEnding(pilot) {
+  const lines = {
+    crystal: '크리스탈은 우승 트로피 대신 WAR의 봉인된 인사 기록을 요구했다. 부모의 이름은, 가니메데 승무원 명단에 있었다.',
+    steffan: '스테판은 상금을 전부 옛 정비 크루에게 나눠 주고, 더 무거운 기체의 설계도를 펼쳤다.',
+    milano: '밀라노는 시상대에서 내려오자마자 다음 시즌 제로G 레이스에 참가 신청을 냈다. "격투? 워밍업이었지."',
+    christian: '크리스천은 빚을 모두 갚고 남은 크레딧을 확인한 뒤, 처음으로 웃었다.',
+    shirro: '시로는 가니메데 기지를 구조 훈련 시설로 개조하겠다고 발표했다. 관중은 야유했고, 그는 개의치 않았다.',
+    angel: '엔젤은 우승 다음 날 사라졌다. WAR의 기밀 서버에는 접속 흔적만 남았다.',
+  };
+  return lines[pilot.id] || '챔피언의 이름이 가니메데의 밤하늘에 새겨졌다.';
+}
+
+function buildLadder() {
+  // 5 regular rungs (random pilot+HAR pairs, no repeat HARs) + NOVA boss
+  const hars = [...CHAR_IDS].sort(() => Math.random() - 0.5).slice(0, 5);
+  const ladder = hars.map((harId) => ({
+    har: harId,
+    pilot: PILOTS[Math.floor(Math.random() * PILOTS.length)],
+    boss: false,
+  }));
+  ladder.push({ har: 'nova', pilot: BOSS_PILOT, boss: true });
+  return ladder;
+}
+
+// ---------------- screens ----------------
+let storyNext = null; // Enter callback for the story screen
+
+function showStory(title, text, next) {
+  hideAllScreens();
+  mode = 'story';
+  storyTitleEl.textContent = title;
+  storyTextEl.textContent = text;
+  storyScreenEl.classList.add('on');
+  storyNext = next;
+}
+
+function hideAllScreens() {
+  UI.showTitle(false);
+  UI.showResult(false);
+  charselectEl.classList.remove('on');
+  storyScreenEl.classList.remove('on');
+  shopScreenEl.classList.remove('on');
+}
+
+// ---------------- shop ----------------
+let shopIndex = 0;
+
+function shopItems() {
+  return [...UPGRADES.map((u) => {
+    const lv = career.up[u.key];
+    return { ...u, lv, cost: lv >= UP_MAX ? null : upCost(lv) };
+  }), { key: 'go', label: '▶ 다음 경기 출전', desc: '', lv: null, cost: null }];
+}
+
+function renderShop() {
+  shopCreditsEl.textContent = `보유 크레딧: ${career.credits} ¢`;
+  shopListEl.innerHTML = shopItems().map((it, i) => {
+    const lv = it.lv == null ? '' : `<span class="lv">Lv ${it.lv}/${UP_MAX}</span>`;
+    const cost = it.key === 'go' ? '' : it.cost == null ? '<span class="cost">MAX</span>' : `<span class="cost">${it.cost} ¢</span>`;
+    const maxCls = it.cost == null && it.key !== 'go' ? ' max' : '';
+    return `<div class="shopItem${i === shopIndex ? ' sel' : ''}${maxCls}">` +
+      `<span>${it.label} <small style="color:#8a7fb0">${it.desc}</small></span><span>${lv} ${cost}</span></div>`;
+  }).join('');
+}
+
+function showShop() {
+  hideAllScreens();
+  mode = 'shop';
+  shopIndex = shopItems().length - 1; // default on "next match"
+  shopScreenEl.classList.add('on');
+  renderShop();
+}
+
+function shopConfirm() {
+  const it = shopItems()[shopIndex];
+  if (it.key === 'go') {
+    Sound.announce();
+    startStoryFight();
+    return;
+  }
+  if (it.cost != null && career.credits >= it.cost) {
+    career.credits -= it.cost;
+    career.up[it.key]++;
+    saveCareer();
+    Sound.announce();
+  } else {
+    Sound.beep();
+  }
+  renderShop();
+}
+
+// ---------------- selection flow ----------------
 function showCharSelect(vsMode) {
   sel.mode = vsMode;
-  sel.phase = 'p1';
-  sel.p1 = 0;
-  sel.p2 = 1;
+  sel.p1 = 0; sel.p2 = 1;
+  sel.p1Pilot = 0; sel.p2Pilot = 1;
+  hideAllScreens();
+  if (vsMode === 'cpu') {
+    story.active = true;
+    story.stage = 0;
+    story.ladder = buildLadder();
+    showStory('2097 — 침공 없는 전쟁', STORY_INTRO, openPilotSelect);
+    return;
+  }
+  story.active = false;
+  openPilotSelect();
+}
+
+function openPilotSelect() {
+  hideAllScreens();
   mode = 'charselect';
-  UI.showTitle(false);
+  sel.phase = 'p1-pilot';
   charselectEl.classList.add('on');
-  csTitle.textContent = 'P1 — 캐릭터 선택';
   renderCsCursor();
 }
 
+function csLabel() {
+  const who = sel.phase.startsWith('p1') ? 'P1' : (sel.mode === 'practice' ? '더미' : 'P2');
+  return sel.phase.endsWith('-pilot') ? `${who} — 파일럿 선택` : `${who} — HAR(로봇) 선택`;
+}
+
 function renderCsCursor() {
+  const pilotPhase = sel.phase.endsWith('-pilot');
+  pilotGridEl.style.display = pilotPhase ? 'flex' : 'none';
+  csGridEl.style.display = pilotPhase ? 'none' : 'flex';
+  csTitle.textContent = csLabel();
+  const isP2 = sel.phase.startsWith('p2');
+  pilotCards.forEach((el, i) => {
+    el.classList.toggle('selP1', !isP2 && i === sel.p1Pilot);
+    el.classList.toggle('selP2', isP2 && i === sel.p2Pilot);
+  });
   csCards.forEach((el, i) => {
-    el.classList.toggle('selP1', i === sel.p1);
-    el.classList.toggle('selP2', mode === 'charselect' && sel.phase !== 'p1' && i === sel.p2);
+    el.classList.toggle('selP1', !isP2 && i === sel.p1);
+    el.classList.toggle('selP2', isP2 && i === sel.p2);
   });
 }
 
-function csMove(who, delta) {
+function csKey() {
+  // index key for the active phase
+  return sel.phase === 'p1-pilot' ? 'p1Pilot' : sel.phase === 'p1-har' ? 'p1'
+    : sel.phase === 'p2-pilot' ? 'p2Pilot' : 'p2';
+}
+
+function csMove(delta) {
   Sound.beep();
-  const n = CHAR_IDS.length;
-  if (who === 'p1') sel.p1 = (sel.p1 + delta + n) % n;
-  else sel.p2 = (sel.p2 + delta + n) % n;
+  const n = sel.phase.endsWith('-pilot') ? PILOTS.length : CHAR_IDS.length;
+  const k = csKey();
+  sel[k] = (sel[k] + delta + n) % n;
   renderCsCursor();
 }
 
 function csConfirm() {
   Sound.announce();
-  if (sel.phase === 'p1') {
-    if (sel.mode === 'cpu') {
-      sel.phase = 'cpu';
-      csTitle.textContent = 'CPU 상대 결정 중...';
-      sel.p2 = Math.floor(Math.random() * CHAR_IDS.length);
-      renderCsCursor();
-      setTimeout(() => { if (mode === 'charselect') startFight(); }, 550);
-    } else {
-      sel.phase = 'p2';
-      csTitle.textContent = sel.mode === 'practice' ? '더미 — 캐릭터 선택' : 'P2 — 캐릭터 선택';
-      renderCsCursor();
-    }
-  } else if (sel.phase === 'p2') {
+  if (sel.phase === 'p1-pilot') { sel.phase = 'p1-har'; renderCsCursor(); return; }
+  if (sel.phase === 'p1-har') {
+    if (sel.mode === 'cpu') { startStoryFight(); return; }
+    sel.phase = 'p2-pilot'; renderCsCursor(); return;
+  }
+  if (sel.phase === 'p2-pilot') { sel.phase = 'p2-har'; renderCsCursor(); return; }
+  if (sel.phase === 'p2-har') {
     if (sel.mode === 'practice') startPractice(); else startFight();
   }
+}
+
+// ---------------- loadout: pilot stats + upgrades onto a HAR ----------------
+function applyLoadout(charDef, pilot, ups) {
+  const drv = ups ? 1 + 0.05 * ups.drv : 1;
+  const hpUp = ups ? 1 + 0.08 * ups.armor : 1;
+  const armUp = ups ? 1 + 0.08 * ups.arm : 1;
+  const legUp = ups ? 1 + 0.08 * ups.leg : 1;
+  return {
+    ...charDef,
+    health: Math.round(charDef.health * pilot.endurance * hpUp),
+    walkF: charDef.walkF * pilot.agility * drv,
+    walkB: charDef.walkB * pilot.agility * drv,
+    jumpVy: charDef.jumpVy * (0.94 + 0.06 * pilot.agility * drv),
+    mods: { arm: pilot.power * armUp, leg: pilot.power * legUp },
+    pilot,
+  };
+}
+
+function fighterLabel(charDef) {
+  return `${charDef.displayName} · ${charDef.pilot ? charDef.pilot.name : '?'}`;
 }
 
 function moveListHtml(fighter, label) {
@@ -133,59 +327,90 @@ function fillPauseTable() {
   pauseRestartOpt.textContent = game.practiceMode ? '위치 · 체력 초기화' : '라운드 재시작';
 }
 
-async function startFight() {
+// ---------------- fight starts ----------------
+function beginMatch(charA, charB, opts = {}) {
   if (game) game.dispose();
-  charselectEl.classList.remove('on');
+  hideAllScreens();
   const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
-  const p2 = new CompositeController(new KeyboardController(P2_KEYS), new PadController(1));
-  const charA = CHARACTERS[CHAR_IDS[sel.p1]];
-  const charB = CHARACTERS[CHAR_IDS[sel.p2]];
-  game = new Game(scene, fx, charA, charB, p1, p2);
+  const p2ctrl = opts.practice
+    ? new VirtualController()
+    : new CompositeController(new KeyboardController(P2_KEYS), new PadController(1));
+  game = new Game(scene, fx, charA, charB, p1, p2ctrl, opts.practice ? { practice: true } : undefined);
   game.camera = camera;
   window.__game = game; // dev/test hook
-  ai = sel.mode === 'cpu' ? new AI(game.fighters[1], game.fighters[0]) : null;
-  game.onMatchEnd = (champ) => {
+  ai = opts.cpu ? new AI(game.fighters[1], game.fighters[0]) : null;
+  game.onMatchEnd = opts.onEnd || ((champ) => {
     mode = 'result';
+    resultHintEl.innerHTML = '<kbd>Enter</kbd> 다시 대전 &nbsp;|&nbsp; <kbd>Esc</kbd> 타이틀로';
     UI.showResult(true, `${champ.char.displayName} WINS!`);
-  };
-  UI.setPracticeMode(false);
-  UI.setNames(charA.displayName, charB.displayName + (sel.mode === 'cpu' ? ' (CPU)' : ''));
+  });
+  UI.setPracticeMode(!!opts.practice);
+  UI.setNames(fighterLabel(charA), fighterLabel(charB) + (opts.cpu ? ' (CPU)' : opts.practice ? ' (더미)' : ''));
   UI.showResult(false);
   UI.showHud(true);
+  if (opts.practice) {
+    UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+    UI.setPracticePanel(moveListHtml(game.fighters[0], 'PLAYER 1'), false);
+  }
   fillPauseTable();
   mode = 'fight';
 }
 
+function startStoryFight() {
+  const rung = story.ladder[story.stage];
+  const meChar = applyLoadout(CHARACTERS[CHAR_IDS[sel.p1]], PILOTS[sel.p1Pilot], career.up);
+  // CPU scales gently with ladder height; the boss brings a heavier chassis
+  const cpuBase = rung.har === 'nova' ? NOVA : CHARACTERS[rung.har];
+  const cpuUps = { arm: story.stage, leg: story.stage, drv: Math.min(2, story.stage), armor: story.stage };
+  const cpuChar = applyLoadout(cpuBase, rung.pilot, cpuUps);
+  beginMatch(meChar, cpuChar, { cpu: true, onEnd: (champ) => onStoryMatchEnd(champ) });
+}
+
+function onStoryMatchEnd(champ) {
+  const playerWon = champ === game.fighters[0];
+  mode = 'result';
+  if (!playerWon) {
+    resultHintEl.innerHTML = '<kbd>Enter</kbd> 재도전 &nbsp;|&nbsp; <kbd>Esc</kbd> 타이틀로';
+    UI.showResult(true, `${champ.char.displayName} WINS!`);
+    return;
+  }
+  // credits: base + ladder bonus + perfect bonus
+  const me = game.fighters[0];
+  const reward = 300 + story.stage * 80 + (me.health >= me.maxHealth ? 200 : 0);
+  career.credits += reward;
+  saveCareer();
+  const wasBoss = story.ladder[story.stage].boss;
+  story.stage++;
+  if (wasBoss) {
+    const pilot = PILOTS[sel.p1Pilot];
+    story.active = false;
+    showStory('CHAMPION OF GANYMEDE', `${pilotEnding(pilot)}\n\n(+${reward} ¢)`, backToTitle);
+    return;
+  }
+  const blurb = STAGE_BLURBS[Math.min(story.stage, STAGE_BLURBS.length - 1)];
+  showStory(`${story.stage}승 — 보상 +${reward} ¢`, blurb, showShop);
+}
+
+async function startFight() {
+  const charA = applyLoadout(CHARACTERS[CHAR_IDS[sel.p1]], PILOTS[sel.p1Pilot], null);
+  const charB = applyLoadout(CHARACTERS[CHAR_IDS[sel.p2]], PILOTS[sel.p2Pilot], null);
+  beginMatch(charA, charB, {});
+}
+
 async function startPractice() {
-  if (game) game.dispose();
-  charselectEl.classList.remove('on');
-  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
-  const dummyCtrl = new VirtualController();
-  const charA = CHARACTERS[CHAR_IDS[sel.p1]];
-  const charB = CHARACTERS[CHAR_IDS[sel.p2]];
-  game = new Game(scene, fx, charA, charB, p1, dummyCtrl, { practice: true });
-  game.camera = camera;
-  window.__game = game;
-  ai = null; // dummy AI (if enabled) is driven internally by Game in practice mode
-  UI.setPracticeMode(true);
-  UI.setNames(charA.displayName, charB.displayName + ' (더미)');
-  UI.showResult(false);
-  UI.showHud(true);
-  UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
-  UI.setPracticePanel(moveListHtml(game.fighters[0], 'PLAYER 1'), false);
-  fillPauseTable();
-  mode = 'fight';
+  const charA = applyLoadout(CHARACTERS[CHAR_IDS[sel.p1]], PILOTS[sel.p1Pilot], null);
+  const charB = applyLoadout(CHARACTERS[CHAR_IDS[sel.p2]], PILOTS[sel.p2Pilot], null);
+  beginMatch(charA, charB, { practice: true });
 }
 
 function backToTitle() {
   if (game) { game.dispose(); game = null; }
   ai = null;
   paused = false;
+  story.active = false;
   UI.showHud(false);
-  UI.showResult(false);
   UI.showPause(false);
-  UI.setPracticeMode(false);
-  charselectEl.classList.remove('on');
+  hideAllScreens();
   UI.showTitle(true);
   mode = 'title';
 }
@@ -204,6 +429,8 @@ function runPauseAction(act) {
     if (game.practiceMode) {
       game.resetPracticePositions();
       UI.setPracticeStatus(game.dummyMode, game.forceGaugeMax);
+    } else if (story.active && sel.mode === 'cpu') {
+      startStoryFight();
     } else {
       startFight();
     }
@@ -261,10 +488,17 @@ window.addEventListener('keydown', (e) => {
     else if (e.code === 'Digit2') showCharSelect('2p');
     else if (e.code === 'Digit3') showCharSelect('practice');
     else if (e.code === 'Enter' || e.code === 'Space') showCharSelect(menuOpts[menuIndex].dataset.mode);
+  } else if (mode === 'story') {
+    if (['Enter', 'KeyJ', 'Space'].includes(e.code)) { const fn = storyNext; storyNext = null; fn?.(); }
+    else if (e.code === 'Escape') backToTitle();
+  } else if (mode === 'shop') {
+    if (['KeyW', 'ArrowUp'].includes(e.code)) { shopIndex = (shopIndex + shopItems().length - 1) % shopItems().length; Sound.beep(); renderShop(); }
+    else if (['KeyS', 'ArrowDown'].includes(e.code)) { shopIndex = (shopIndex + 1) % shopItems().length; Sound.beep(); renderShop(); }
+    else if (['Enter', 'KeyJ', 'Space'].includes(e.code)) shopConfirm();
+    else if (e.code === 'Escape') backToTitle();
   } else if (mode === 'charselect') {
-    const isP1Turn = sel.phase === 'p1';
-    if (['KeyA', 'ArrowLeft'].includes(e.code)) csMove(isP1Turn ? 'p1' : 'p2', -1);
-    else if (['KeyD', 'ArrowRight'].includes(e.code)) csMove(isP1Turn ? 'p1' : 'p2', 1);
+    if (['KeyA', 'ArrowLeft'].includes(e.code)) csMove(-1);
+    else if (['KeyD', 'ArrowRight'].includes(e.code)) csMove(1);
     else if (['Enter', 'KeyJ', 'Space'].includes(e.code)) csConfirm();
     else if (e.code === 'Escape') backToTitle();
   } else if (mode === 'fight') {
@@ -297,7 +531,10 @@ window.addEventListener('keydown', (e) => {
       }
     }
   } else if (mode === 'result') {
-    if (e.code === 'Enter') showCharSelect(sel.mode);
+    if (e.code === 'Enter') {
+      if (story.active && sel.mode === 'cpu') startStoryFight(); // retry the rung
+      else showCharSelect(sel.mode);
+    }
     if (e.code === 'Escape') backToTitle();
   }
 });
@@ -310,9 +547,17 @@ menuOpts.forEach((el, i) => {
 csCards.forEach((el, i) => {
   el.style.pointerEvents = 'auto';
   el.addEventListener('click', () => {
-    if (mode !== 'charselect') return;
-    if (sel.phase === 'p1') { sel.p1 = i; renderCsCursor(); csConfirm(); }
-    else if (sel.phase === 'p2') { sel.p2 = i; renderCsCursor(); csConfirm(); }
+    if (mode !== 'charselect' || !sel.phase.endsWith('-har')) return;
+    sel[sel.phase.startsWith('p1') ? 'p1' : 'p2'] = i;
+    renderCsCursor(); csConfirm();
+  });
+});
+pilotCards.forEach((el, i) => {
+  el.style.pointerEvents = 'auto';
+  el.addEventListener('click', () => {
+    if (mode !== 'charselect' || !sel.phase.endsWith('-pilot')) return;
+    sel[sel.phase.startsWith('p1') ? 'p1Pilot' : 'p2Pilot'] = i;
+    renderCsCursor(); csConfirm();
   });
 });
 pauseOpts.forEach((el, i) => {
@@ -330,22 +575,25 @@ function padMenus() {
     if (e0.down) { setMenuSel(menuIndex + 1); Sound.beep(); }
     if (e0.confirm) showCharSelect(menuOpts[menuIndex].dataset.mode);
   } else if (mode === 'charselect') {
-    if (sel.phase === 'p1') {
-      if (e0.left) csMove('p1', -1);
-      if (e0.right) csMove('p1', 1);
-      if (e0.confirm) csConfirm();
-    } else if (sel.phase === 'p2') {
-      const e = sel.mode === '2p' ? e1 : e0;
-      if (e.left) csMove('p2', -1);
-      if (e.right) csMove('p2', 1);
-      if (e.confirm) csConfirm();
-    }
+    const e = sel.mode === '2p' && sel.phase.startsWith('p2') ? e1 : e0;
+    if (e.left) csMove(-1);
+    if (e.right) csMove(1);
+    if (e.confirm) csConfirm();
+  } else if (mode === 'story') {
+    if (e0.confirm) { const fn = storyNext; storyNext = null; fn?.(); }
+  } else if (mode === 'shop') {
+    if (e0.up) { shopIndex = (shopIndex + shopItems().length - 1) % shopItems().length; Sound.beep(); renderShop(); }
+    if (e0.down) { shopIndex = (shopIndex + 1) % shopItems().length; Sound.beep(); renderShop(); }
+    if (e0.confirm) shopConfirm();
   } else if (mode === 'fight' && paused) {
     if (e0.up) { setPauseSel(pauseIndex - 1); Sound.beep(); }
     if (e0.down) { setPauseSel(pauseIndex + 1); Sound.beep(); }
     if (e0.confirm) runPauseAction(pauseOpts[pauseIndex].dataset.act);
   } else if (mode === 'result') {
-    if (e0.confirm) showCharSelect(sel.mode);
+    if (e0.confirm) {
+      if (story.active && sel.mode === 'cpu') startStoryFight();
+      else showCharSelect(sel.mode);
+    }
   }
 }
 
@@ -382,7 +630,10 @@ let acc = 0;
 
 function frame(now) {
   requestAnimationFrame(frame);
-  let dt = Math.min(0.1, (now - last) / 1000);
+  // clamp guards against huge catch-ups after tab suspend, but stays generous
+  // enough that slow renderers (software GL/CI) keep wall-accurate game time —
+  // the fixed-step loop below just runs more physics steps per frame
+  let dt = Math.min(0.25, (now - last) / 1000);
   last = now;
 
   pollGamepads();
@@ -391,7 +642,7 @@ function frame(now) {
 
   if (!paused) {
     tickInputClock(dt);
-    if (mode === 'title' || mode === 'charselect' || mode === 'result') padMenus();
+    if (['title', 'charselect', 'result', 'story', 'shop'].includes(mode)) padMenus();
     if (game && mode !== 'result') {
       acc += fighterDt;
       while (acc >= STEP) {

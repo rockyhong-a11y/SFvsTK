@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>SF vs TK — Fighting Prototype</title>
+<title>HAR ARENA 2097 — OMF 오마주 프로토타입</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥋</text></svg>">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -251,6 +251,19 @@
   .csCard.selP1 .csTag.t1 { visibility: visible; background: #1c5dbb; color: #fff; }
   .csCard.selP2 .csTag.t2 { visibility: visible; background: #b3303c; color: #fff; }
   #csHint { margin-top: 36px; font-size: 13px; color: #9a8fc0; line-height: 1.9; }
+  #pilotGrid { display: flex; gap: 13px; flex-wrap: wrap; justify-content: center; max-width: 1080px; }
+  #storyScreen h2 { font-size: 26px; color: #ffe8a0; letter-spacing: 2px; margin-bottom: 26px; }
+  #storyScreen p#storyText { max-width: 640px; font-size: 15px; line-height: 2.1; color: #cfc8e8; white-space: pre-line; text-align: center; }
+  .storyHint { margin-top: 34px; font-size: 12px; color: #9a8fc0; }
+  #shopScreen h2 { font-size: 24px; color: #ffe8a0; letter-spacing: 2px; margin-bottom: 10px; }
+  #shopCredits { font-size: 15px; color: #7fd0ff; margin-bottom: 22px; }
+  #shopList { display: flex; flex-direction: column; gap: 8px; min-width: 460px; }
+  .shopItem { padding: 9px 18px; border: 1px solid #4a3f66; border-radius: 8px; color: #cfc8e8;
+    font-size: 14px; display: flex; justify-content: space-between; gap: 24px; }
+  .shopItem.sel { border-color: #ffb300; background: rgba(255,140,0,.15); color: #fff; }
+  .shopItem .lv { color: #7fd0ff; }
+  .shopItem .cost { color: #ffd34a; }
+  .shopItem.max .cost { color: #6a6484; }
 
   #pauseOverlay {
     position: absolute; inset: 0; display: none; z-index: 9;
@@ -346,9 +359,9 @@
   </div>
 
   <div class="screen on" id="title">
-    <h1>SF <span>vs</span> TK</h1>
-    <h2>STREET FIGHTER × TEKKEN — 3D BATTLE PROTOTYPE</h2>
-    <div class="menuOpt" data-mode="cpu">1인 대전 (VS CPU)</div>
+    <h1>HAR <span>ARENA</span> 2097</h1>
+    <h2>ONE MUST FALL 오마주 — 파일럿 × 로봇 2D 격투 프로토타입</h2>
+    <div class="menuOpt" data-mode="cpu">토너먼트 (스토리)</div>
     <div class="menuOpt" data-mode="2p">2인 대전 (VS 2P)</div>
     <div class="menuOpt" data-mode="practice">연습장 (PRACTICE)</div>
     <div class="hintLine">
@@ -362,34 +375,61 @@
   </div>
 
   <div class="screen" id="charselect">
-    <h2 id="csTitle">P1 — 캐릭터 선택</h2>
+    <h2 id="csTitle">P1 — 파일럿 선택</h2>
+    <div id="pilotGrid">
+      <div class="csCard pilotCard" data-pilot="crystal" style="--c1:#4a9ad8;--c2:#12324e">
+        <div class="csSwatch"></div><b>크리스탈</b><span>CRYSTAL<br>파워 ●●○ · 민첩 ●●● · 내구 ●●○</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard pilotCard" data-pilot="steffan" style="--c1:#c8542a;--c2:#4e1c12">
+        <div class="csSwatch"></div><b>스테판</b><span>STEFFAN<br>파워 ●●● · 민첩 ●○○ · 내구 ●●●</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard pilotCard" data-pilot="milano" style="--c1:#3ab86a;--c2:#124e28">
+        <div class="csSwatch"></div><b>밀라노</b><span>MILANO<br>파워 ●○○ · 민첩 ●●● · 내구 ●●○</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard pilotCard" data-pilot="christian" style="--c1:#b8a03a;--c2:#4e4212">
+        <div class="csSwatch"></div><b>크리스천</b><span>CHRISTIAN<br>파워 ●●● · 민첩 ●●○ · 내구 ●●○</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard pilotCard" data-pilot="shirro" style="--c1:#8a8f9c;--c2:#33363e">
+        <div class="csSwatch"></div><b>시로</b><span>SHIRRO<br>파워 ●●○ · 민첩 ●○○ · 내구 ●●●</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+      <div class="csCard pilotCard" data-pilot="angel" style="--c1:#b84ad8;--c2:#3e124e">
+        <div class="csSwatch"></div><b>엔젤</b><span>ANGEL<br>파워 ●●○ · 민첩 ●●● · 내구 ●○○</span>
+        <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
+      </div>
+    </div>
     <div id="csGrid">
       <div class="csCard" data-char="chunli" style="--c1:#2d63e8;--c2:#12275e;--cSkin:#f2c9a0">
-        <div class="csSwatch"></div><b>춘리</b><span>CHUN-LI<br>스피드 · 연격 · 기공권</span>
+        <div class="csSwatch"></div><b>일렉트라</b><span>ELECTRA<br>스피드 · 연격 · 전격탄</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
       <div class="csCard" data-char="nina" style="--c1:#8b45b8;--c2:#31164a;--cSkin:#f5d3b3">
-        <div class="csSwatch"></div><b>니나</b><span>NINA<br>한방 · 벽 운반 · 잡기</span>
+        <div class="csSwatch"></div><b>카타나</b><span>KATANA<br>블레이드 · 런처 · 한방</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
       <div class="csCard" data-char="cammy" style="--c1:#37a854;--c2:#123a1e;--cSkin:#f2c9a0">
-        <div class="csSwatch"></div><b>캐미</b><span>CAMMY<br>러시다운 · 돌진기</span>
+        <div class="csSwatch"></div><b>재규어</b><span>JAGUAR<br>러시다운 · 도약 돌진</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
       <div class="csCard" data-char="asuka" style="--c1:#4a7ade;--c2:#e8e8e2;--cSkin:#f2cba6">
-        <div class="csSwatch"></div><b>아스카</b><span>ASUKA<br>반격기 · 묵직한 한방</span>
+        <div class="csSwatch"></div><b>섀도우</b><span>SHADOW<br>팬텀 반격 · 트릭</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
       <div class="csCard" data-char="zangief" style="--c1:#c02525;--c2:#1a1a1a;--cSkin:#e8b48a">
-        <div class="csSwatch"></div><b>장기에프</b><span>ZANGIEF<br>거구 · 커맨드 그랩</span>
+        <div class="csSwatch"></div><b>쏜</b><span>THORN<br>거구 · 스파이크 그랩</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
       <div class="csCard" data-char="rmika" style="--c1:#f04a9c;--c2:#ffffff;--cSkin:#f2c9a0">
-        <div class="csSwatch"></div><b>R. 미카</b><span>R. MIKA<br>수플렉스 · 잡기 압박</span>
+        <div class="csSwatch"></div><b>파이로스</b><span>PYROS<br>화염 · 그랩 압박</span>
         <div><span class="csTag t1">P1</span> <span class="csTag t2">P2</span></div>
       </div>
     </div>
     <p id="csHint">
+      <b style="color:#ffd34a">파일럿</b>을 먼저 고르고, 조종할 <b style="color:#ffd34a">HAR(로봇)</b>를 고릅니다.<br>
       이동 <kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> · 결정 <kbd>Enter</kbd>/<kbd>J</kbd> (P2: <kbd>Num1</kbd>/<kbd>N</kbd>) · 뒤로 <kbd>Esc</kbd><br>
       게임패드: 십자키 이동 · 아무 버튼 결정
     </p>
@@ -397,7 +437,20 @@
 
   <div class="screen" id="result">
     <h1 id="resultText">WINS</h1>
-    <p><kbd>Enter</kbd> 다시 대전 &nbsp;|&nbsp; <kbd>Esc</kbd> 타이틀로</p>
+    <p id="resultHint"><kbd>Enter</kbd> 다시 대전 &nbsp;|&nbsp; <kbd>Esc</kbd> 타이틀로</p>
+  </div>
+
+  <div class="screen" id="storyScreen">
+    <h2 id="storyTitle"></h2>
+    <p id="storyText"></p>
+    <p class="storyHint"><kbd>Enter</kbd> 계속</p>
+  </div>
+
+  <div class="screen" id="shopScreen">
+    <h2>정비고 — HAR 업그레이드</h2>
+    <p id="shopCredits"></p>
+    <div id="shopList"></div>
+    <p class="storyHint">이동 <kbd>W</kbd>/<kbd>S</kbd> · 구매/진행 <kbd>Enter</kbd></p>
   </div>
 
   <div id="pauseOverlay">

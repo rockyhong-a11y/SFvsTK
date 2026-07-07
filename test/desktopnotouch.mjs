@@ -5,6 +5,10 @@ await page.goto('http://localhost:8321/index.html');
 await page.waitForTimeout(600);
 await page.keyboard.press('Digit1');
 await page.waitForTimeout(400);
+await page.keyboard.press('Enter'); // skip story intro
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P1 pilot
+await page.waitForTimeout(250);
 await page.keyboard.press('Enter');
 await page.waitForTimeout(2300);
 const visible = await page.evaluate(() => {

@@ -18,6 +18,10 @@ console.log('canvas:', await page.evaluate(() => document.querySelectorAll('canv
 // boot a CPU match with Asuka (P1 cursor right x3)
 await page.keyboard.press('Digit1');
 await page.waitForTimeout(300);
+await page.keyboard.press('Enter'); // skip story intro
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P1 pilot
+await page.waitForTimeout(250);
 await page.keyboard.press('KeyD');
 await page.keyboard.press('KeyD');
 await page.keyboard.press('KeyD');

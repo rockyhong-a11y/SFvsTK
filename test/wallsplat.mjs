@@ -11,9 +11,13 @@ await page.goto('http://localhost:8321/index.html');
 await page.waitForTimeout(800);
 await page.keyboard.press('Digit2');
 await page.waitForTimeout(400);
-await page.keyboard.press('Enter'); // P1: Chun-Li
+await page.keyboard.press('Enter'); // P1 pilot
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P1: Electra
 await page.waitForTimeout(300);
-await page.keyboard.press('Enter'); // P2: Nina
+await page.keyboard.press('Enter'); // P2 pilot
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P2: Katana
 await page.waitForTimeout(1600);
 
 // P1 backs into left wall; P2 chases until close

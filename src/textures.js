@@ -39,7 +39,11 @@ function toTexture(canvas, { srgb = true, repeatX = 1, repeatY = 1 } = {}) {
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(repeatX, repeatY);
   if (srgb) t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 4;
+  // single-level linear filtering: software GL pays ~8 fetches/fragment for
+  // trilinear mipmaps on the fullscreen floor/walls — this keeps it at 1-2
+  t.generateMipmaps = false;
+  t.minFilter = THREE.LinearFilter;
+  t.magFilter = THREE.LinearFilter;
   return t;
 }
 
@@ -320,7 +324,107 @@ function drawFabric(color, seed) {
   return { map: toTexture(c), bumpMap: toTexture(bc, { srgb: false }) };
 }
 
-const DRAWERS = { leather: drawLeather, skin: drawSkin, hair: drawHair, wood: drawWood, plaster: drawPlaster, fabric: drawFabric };
+
+// ---------------- brushed armor metal (HAR robots / arena deck) ----------------
+// panel seams + rivets + brushed streaks + scratches. Returns { map, bumpMap }.
+function drawMetal(color, seed, { panels = 3, wear = 0.5 } = {}) {
+  const size = 256;
+  const rnd = mulberry32(seed);
+  const [c, ctx] = makeCanvas(size);
+  const [bc, bctx] = makeCanvas(size);
+
+  ctx.fillStyle = shade(color, 0);
+  ctx.fillRect(0, 0, size, size);
+  bctx.fillStyle = 'rgb(128,128,128)';
+  bctx.fillRect(0, 0, size, size);
+
+  // brushed streaks
+  for (let i = 0; i < 260; i++) {
+    const y = rnd() * size, x0 = rnd() * size, len = 24 + rnd() * 90;
+    const light = rnd() < 0.5;
+    ctx.strokeStyle = shade(color, light ? 0.16 : -0.16, 0.11);
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x0 + len, y); ctx.stroke();
+  }
+
+  // panel seams (jittered grid) + rivets at intersections
+  const cell = size / panels;
+  const jit = () => (rnd() - 0.5) * 8;
+  for (let i = 0; i <= panels; i++) {
+    const v = Math.min(size - 1, i * cell + (i === 0 || i === panels ? 0 : jit()));
+    for (const [sx, sy, ex, ey] of [[v, 0, v, size], [0, v, size, v]]) {
+      ctx.strokeStyle = shade(color, -0.42, 0.5); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.strokeStyle = shade(color, 0.25, 0.25); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(sx + 2, sy + 2); ctx.lineTo(ex + 2, ey + 2); ctx.stroke();
+      bctx.strokeStyle = 'rgba(40,40,40,0.8)'; bctx.lineWidth = 2;
+      bctx.beginPath(); bctx.moveTo(sx, sy); bctx.lineTo(ex, ey); bctx.stroke();
+    }
+    for (let j = 0; j <= panels; j++) {
+      const rx = Math.min(size - 6, Math.max(6, j * cell + 6)), ry = Math.min(size - 6, Math.max(6, v + 6));
+      ctx.fillStyle = shade(color, -0.3, 0.7);
+      ctx.beginPath(); ctx.arc(rx, ry, 2.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = shade(color, 0.35, 0.5);
+      ctx.beginPath(); ctx.arc(rx - 0.7, ry - 0.7, 0.9, 0, Math.PI * 2); ctx.fill();
+      bctx.fillStyle = 'rgba(220,220,220,0.7)';
+      bctx.beginPath(); bctx.arc(rx, ry, 2.2, 0, Math.PI * 2); bctx.fill();
+    }
+  }
+
+  // battle scratches
+  const scr = Math.round(8 * wear);
+  for (let i = 0; i < scr; i++) {
+    walkStroke(ctx, mulberry32(seed + 300 + i), size, shade(color, 0.3, 0.22), 1, 10, 0.5);
+    walkStroke(bctx, mulberry32(seed + 300 + i), size, 'rgba(200,200,200,0.4)', 1, 10, 0.5);
+  }
+  // scorch smudges
+  for (let i = 0; i < Math.round(4 * wear); i++) {
+    const x = rnd() * size, y = rnd() * size, r = 12 + rnd() * 26;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, 'rgba(20,16,12,0.18)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+
+  return { map: toTexture(c), bumpMap: toTexture(bc, { srgb: false }) };
+}
+
+// ---------------- Jupiter disc (2097 Ganymede arena sky) ----------------
+function drawJupiter(color, seed) {
+  const size = 256;
+  const rnd = mulberry32(seed);
+  const [c, ctx] = makeCanvas(size);
+  const bands = [0xd8b090, 0xc09a78, 0xe8cbaa, 0xb08a68, 0xd8ac88, 0xc8a077, 0xe0c09a];
+  let y = 0;
+  let bi = 0;
+  while (y < size) {
+    const h = 12 + rnd() * 26;
+    ctx.fillStyle = shade(bands[bi % bands.length], (rnd() - 0.5) * 0.12);
+    ctx.fillRect(0, y, size, h + 2);
+    // wavy band edge streaks
+    for (let i = 0; i < 5; i++) {
+      ctx.strokeStyle = shade(bands[(bi + 1) % bands.length], -0.08, 0.35);
+      ctx.lineWidth = 1 + rnd() * 2;
+      const yy = y + rnd() * h;
+      ctx.beginPath();
+      ctx.moveTo(0, yy);
+      ctx.bezierCurveTo(size * 0.3, yy + (rnd() - 0.5) * 8, size * 0.7, yy + (rnd() - 0.5) * 8, size, yy);
+      ctx.stroke();
+    }
+    y += h; bi++;
+  }
+  // great red spot
+  ctx.fillStyle = 'rgba(178,72,48,0.85)';
+  ctx.beginPath(); ctx.ellipse(size * 0.62, size * 0.64, 30, 17, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(230,180,150,0.6)';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.ellipse(size * 0.62, size * 0.64, 34, 20, 0, 0, Math.PI * 2); ctx.stroke();
+  const tex = toTexture(c);
+  return { map: tex, bumpMap: tex };
+}
+
+const DRAWERS = { leather: drawLeather, skin: drawSkin, hair: drawHair, wood: drawWood, plaster: drawPlaster, fabric: drawFabric, metal: drawMetal, jupiter: drawJupiter };
 
 export function getTextureSet(kind, color, seed, params = {}) {
   const key = `${kind}:${color}:${seed}:${JSON.stringify(params)}`;
@@ -331,37 +435,27 @@ export function getTextureSet(kind, color, seed, params = {}) {
 // ---------------- character material factories ----------------
 
 // character body parts are small boxes, so sample a sub-window of the texture
-// (repeat < 1) — grain features stay chunky enough to read at fight distance
+// (repeat < 1) — panel/grain features stay chunky enough to read at fight distance
 function zoom(set, k) {
   set.map.repeat.set(k, k);
   set.bumpMap.repeat.set(k, k);
   return set;
 }
 
-// glossy skin: clearcoat gives the highlight sheen without turning metallic
-export function skinMaterial(color, seed) {
-  const { map, bumpMap } = zoom(getTextureSet('skin', color, seed), 0.6);
-  return new THREE.MeshPhysicalMaterial({
-    map, bumpMap, bumpScale: 0.5,
-    roughness: 0.34, metalness: 0,
-    clearcoat: 0.55, clearcoatRoughness: 0.35,
+// HAR armor plating — pass z (sub-window zoom) in params so each zoom level
+// gets its own cached texture instead of mutating a shared one.
+// NOTE: no bumpMap — software GL (SwiftShader) drops from 60fps to 4fps with
+// per-fragment bump sampling; the maps bake seam highlight/shadow lines instead
+export function metalMaterial(color, seed, { panels = 3, wear = 0.5, rough = 0.38, metal = 0.8, z = 1 } = {}) {
+  const set = getTextureSet('metal', color, seed, { panels, wear, z });
+  if (z !== 1) zoom(set, z);
+  return new THREE.MeshStandardMaterial({
+    map: set.map,
+    roughness: rough, metalness: metal,
   });
 }
 
-// leather clothes: grain/creases/gloss vary per finish so each fighter keeps
-// their identity while everyone reads as leather
-export function leatherMaterial(color, seed, { grain = 1, creases = 12, wear = 0.5, gloss = 0.62, metal = 0.05 } = {}) {
-  const { map, bumpMap } = zoom(getTextureSet('leather', color, seed, { grain, creases, wear }), 0.45);
-  return new THREE.MeshStandardMaterial({
-    map, bumpMap, bumpScale: 2.2,
-    roughness: gloss, metalness: metal,
-  });
-}
-
-export function hairMaterial(color, seed) {
-  const { map, bumpMap } = zoom(getTextureSet('hair', color, seed), 0.7);
-  return new THREE.MeshStandardMaterial({
-    map, bumpMap, bumpScale: 0.9,
-    roughness: 0.5, metalness: 0.05,
-  });
+export function jupiterMaterial() {
+  const { map } = getTextureSet('jupiter', 0xd8b090, 7);
+  return new THREE.MeshBasicMaterial({ map, fog: false });
 }

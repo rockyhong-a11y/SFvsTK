@@ -15,11 +15,15 @@ await page.waitForTimeout(800);
 // --- char select: P1 = Cammy (index 2), P2 = Asuka (index 3) ---
 await page.keyboard.press('Digit2');
 await page.waitForTimeout(300);
+await page.keyboard.press('Enter'); // P1 pilot
+await page.waitForTimeout(250);
 await page.keyboard.press('KeyD');
 await page.keyboard.press('KeyD');
 await page.waitForTimeout(150);
 await page.screenshot({ path: SHOT + '/20-charselect.png' });
-await page.keyboard.press('Enter'); // P1: cammy
+await page.keyboard.press('Enter'); // P1: cammy(jaguar)
+await page.waitForTimeout(250);
+await page.keyboard.press('Enter'); // P2 pilot
 await page.waitForTimeout(250);
 await page.keyboard.press('ArrowRight');
 await page.keyboard.press('ArrowRight'); // nina -> asuka

@@ -18,11 +18,21 @@ export class Fighter {
     scene.add(this.rig.root);
 
     this.maxHealth = charDef.health;
+    // pilot power + tournament upgrades (arm/leg servo power)
+    const mods = charDef.mods || {};
+    this.armMul = mods.arm || 1;
+    this.legMul = mods.leg || 1;
     this.meter = 0; // super gauge 0..100, persists across rounds
     this.reset(0, 1);
   }
 
   addMeter(v) { this.meter = Math.min(100, Math.max(0, this.meter + v)); }
+
+  // leg-driven moves scale with leg servos, everything else with arm servos
+  dmgMulFor(mv) {
+    const legs = mv?.limbs && mv.limbs.length && mv.limbs.every((l) => l.startsWith('foot'));
+    return legs ? this.legMul : this.armMul;
+  }
 
   reset(x, facing) {
     this.pos = { x, y: 0 };
@@ -174,6 +184,7 @@ export class Fighter {
     this.state = 'attack';
     this.stateT = 0;
     this.move = move;
+    this.lastMoveName = move.name; // dev/test hook — fast moves can finish within one slow frame
     this.moveT = 0;
     this.hitsLanded = 0;
     this.nextHitTime = move.startup;
