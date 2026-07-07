@@ -2,15 +2,69 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SF vs TK — Fighting Prototype (Standalone)</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥋</text></svg>">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden; background: #000;
+    overscroll-behavior: none; touch-action: none;
+  }
   body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; user-select: none; }
-  #app { position: relative; width: 100%; height: 100%; }
-  canvas { display: block; }
+  #app {
+    position: relative; width: 100%; height: 100%;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  canvas { display: block; position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+
+  /* ---------- mobile / narrow-screen scaling ---------- */
+  @media (max-width: 900px), (max-height: 560px) {
+    .screen { overflow-y: auto; padding: 10px 0; touch-action: pan-y; }
+    .healthRow { top: 10px; gap: 6px; padding: 0 1.5%; }
+    .hpName { font-size: 11px; }
+    .hpBar { height: 15px; }
+    #timerBox { width: 52px; }
+    #timer { font-size: 24px; }
+    .pip { width: 9px; height: 9px; }
+    .meterBar { height: 6px; }
+    .moveName { font-size: 11px; height: 15px; }
+    .combo { font-size: 17px; top: 74px; }
+    .combo small { font-size: 10px; }
+    #announce { font-size: 42px; }
+    #announce.ko { font-size: 68px; }
+    #subAnnounce { font-size: 16px; }
+    #title h1 { font-size: 48px; }
+    #title h1 span { font-size: 34px; }
+    #title h2 { font-size: 11px; margin: 8px 0 22px; }
+    .menuOpt { font-size: 17px; padding: 6px 22px; }
+    .hintLine { margin-top: 20px; font-size: 10px; line-height: 1.6; }
+    #csGrid { gap: 8px; }
+    .csCard { width: 100px; padding: 8px 6px 6px; }
+    .csCard .csSwatch { width: 54px; height: 54px; }
+    .csCard b { font-size: 15px; }
+    .csCard span { font-size: 9px; }
+    #charselect h2 { font-size: 18px; margin-bottom: 14px; }
+    #csHint { margin-top: 16px; font-size: 10px; }
+    #pauseOverlay h2 { font-size: 24px; }
+    .pauseOpt { font-size: 15px; padding: 5px 18px; }
+    .ctrlTable { font-size: 11px; gap: 20px; }
+  }
+
+  /* portrait phones: nudge the player toward landscape without hard-blocking play */
+  #rotateHint {
+    display: none; position: absolute; inset: 0; z-index: 50;
+    background: rgba(5,0,15,.92); color: #fff; text-align: center;
+    flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    font-size: 15px; pointer-events: none;
+  }
+  #rotateHint span { font-size: 42px; }
+  @media (max-width: 700px) and (orientation: portrait) {
+    #rotateHint { display: flex; }
+  }
 
   /* ---------- HUD ---------- */
   #hud { position: absolute; inset: 0; pointer-events: none; display: none; }
@@ -213,6 +267,48 @@
   .pauseOpt.sel { color: #fff; border-color: #ffb300; background: rgba(255,140,0,.18); text-shadow: 0 0 10px #ff9500; }
   .ctrlTable { display: flex; gap: 60px; text-align: left; font-size: 14px; line-height: 2.1; color: #cfc4ee; }
   .ctrlTable b { color: #fff; display: block; margin-bottom: 4px; font-size: 16px; }
+
+  /* ---------- touch controls ---------- */
+  #touchControls {
+    display: none; position: absolute; inset: 0; z-index: 8; pointer-events: none;
+  }
+  #touchControls.on { display: block; }
+  .tBtn {
+    position: absolute; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: rgba(60,50,90,.42); border: 2px solid rgba(230,220,255,.35);
+    color: #fff; font-weight: 800; font-size: 13px; letter-spacing: .5px; font-family: inherit;
+    -webkit-user-select: none; user-select: none; pointer-events: auto; touch-action: none;
+    -webkit-touch-callout: none; outline: none;
+  }
+  .tBtn.active { background: rgba(255,150,40,.55); border-color: #ffb347; }
+  #touchDpad { position: absolute; left: 4vw; bottom: 6vh; width: 34vw; height: 34vw; max-width: 190px; max-height: 190px; }
+  #touchDpad .tBtn { width: 34%; height: 34%; font-size: 20px; }
+  #touchDpad .tUp    { left: 33%; top: 0; }
+  #touchDpad .tDown  { left: 33%; top: 66%; }
+  #touchDpad .tLeft  { left: 0;   top: 33%; }
+  #touchDpad .tRight { left: 66%; top: 33%; }
+  #touchButtons { position: absolute; right: 2vw; bottom: 3vh; width: 68vw; max-width: 380px; height: 38vw; max-height: 210px; }
+  /* row 1 (bottom edge): the 3 primary attacks, evenly spaced with clear gaps */
+  #touchButtons .tPunch, #touchButtons .tKick, #touchButtons .tSkill {
+    width: 20vw; height: 20vw; max-width: 78px; max-height: 78px; font-size: 15px; bottom: 0;
+  }
+  #touchButtons .tSkill { right: 0; }
+  #touchButtons .tKick  { right: 24vw; }
+  #touchButtons .tPunch { right: 48vw; }
+  /* row 2 (above row 1, offset over the gaps): grab + super */
+  #touchButtons .tGrab, #touchButtons .tSuper {
+    width: 14vw; height: 14vw; max-width: 54px; max-height: 54px; font-size: 9px; bottom: 22vw;
+  }
+  #touchButtons .tGrab  { right: 10vw; }
+  #touchButtons .tSuper { right: 40vw; background: rgba(55,140,255,.4); border-color: #7fd0ff; }
+  #touchPause {
+    position: absolute; top: calc(6px + env(safe-area-inset-top)); right: 8px; z-index: 9;
+    width: 34px; height: 34px; border-radius: 8px; background: rgba(40,30,60,.55); border: 2px solid rgba(230,220,255,.35);
+    color: #fff; font-size: 15px; pointer-events: auto; touch-action: none;
+  }
+  @media (min-width: 901px) and (any-hover: hover) and (any-pointer: fine) {
+    #touchControls, #touchPause { display: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -257,6 +353,7 @@
       <kbd>J</kbd> 펀치 &nbsp; <kbd>K</kbd> 킥 &nbsp; <kbd>L</kbd> 스킬 &nbsp; <kbd>I</kbd> 잡기 &nbsp;|&nbsp; 게임패드 지원 🎮<br>
       스킬은 <kbd>L</kbd> 단독 / <kbd>→</kbd>+<kbd>L</kbd> / <kbd>←</kbd>+<kbd>L</kbd> / <kbd>↓</kbd>+<kbd>L</kbd> 로 4가지 발동
       &nbsp;|&nbsp; 슈퍼: 게이지 MAX 시 <kbd>J</kbd>+<kbd>K</kbd> 동시 (또는 <kbd>U</kbd>)<br>
+      펀치·킥도 방향에 따라 다른 기술: <kbd>→</kbd>+<kbd>J</kbd>/<kbd>K</kbd> 전진기 · <kbd>←</kbd>+<kbd>J</kbd>/<kbd>K</kbd> 견제기 · <kbd>↓</kbd>+<kbd>J</kbd>/<kbd>K</kbd> 앉아 공격<br>
       가드: 상대 반대 방향 홀드 (앉아가드 = ↓+반대방향) &nbsp;|&nbsp; <kbd>↑↓</kbd> / <kbd>Enter</kbd> 선택
     </div>
   </div>
@@ -319,6 +416,24 @@
       <kbd>↑↓</kbd>/<kbd>Enter</kbd> 메뉴 선택 · <kbd>P</kbd> 빠른 재개 · <kbd>Esc</kbd> 뒤로
     </p>
   </div>
+
+  <div id="touchControls">
+    <div id="touchDpad">
+      <button class="tBtn tUp" data-act="up">▲</button>
+      <button class="tBtn tDown" data-act="down">▼</button>
+      <button class="tBtn tLeft" data-act="left">◀</button>
+      <button class="tBtn tRight" data-act="right">▶</button>
+    </div>
+    <div id="touchButtons">
+      <button class="tBtn tSkill" data-act="skill">스킬</button>
+      <button class="tBtn tKick" data-act="kick">킥</button>
+      <button class="tBtn tPunch" data-act="punch">펀치</button>
+      <button class="tBtn tGrab" data-act="grab">잡기</button>
+      <button class="tBtn tSuper" data-act="super">슈퍼</button>
+    </div>
+  </div>
+  <button id="touchPause">⏸</button>
+  <div id="rotateHint"><span>📱↻</span>가로모드로 돌려주세요</div>
 </div>
 <script type="text/plain" id="three-core-src">
 /**
@@ -965,6 +1080,67 @@ function strike(su, act, rec, windup, extend, recover = ST) {
 
 const RAD = 0.3; // default hit sphere radius
 
+// ---------- directional command normals (SF-style forward/back punch & kick) ----------
+// Neutral/crouch/air punch & kick already exist (punch/cpunch/jpunch, kick/ckick/jkick).
+// These add the classic SF-style forward/back command normals: holding toward or away
+// from the opponent while pressing punch/kick gives a different, situational normal.
+const CMD_PUNCH_F_WINDUP = { ...ST, tw: -0.55, sR: 0.1, eR: 1.95 };
+const CMD_PUNCH_F_EXTEND = { y: -0.03, tl: 0.08, tw: 0.6, sR: 1.7, eR: 0.05, sL: 0.3, eL: 1.7, hL: 0.55, kL: -0.5, hR: 0.05, kR: -0.35 };
+const CMD_PUNCH_B_WINDUP = { ...ST, tl: -0.15, tw: -0.4, sR: 0.7, eR: 1.3, sxR: 0.3 };
+const CMD_PUNCH_B_EXTEND = { y: -0.02, tl: -0.25, tw: 0.15, sR: 1.55, eR: 0.55, sxR: 0.3, sL: 0.35, eL: 1.75, hL: 0.3, kL: -0.5 };
+const CMD_KICK_F_WINDUP = { ...ST, tl: 0.15, tw: -0.55, hR: -0.55, kR: -1.35 };
+const CMD_KICK_F_EXTEND = { y: -0.03, tl: -0.15, tw: 0.55, sL: 0.6, eL: 1.5, sR: -0.55, eR: 0.55, sxR: 0.4, hL: 0.2, kL: -0.4, hR: 1.7, kR: -0.1 };
+const CMD_KICK_B_WINDUP = { ...ST, tl: 0.1, tw: 0.3, ry: 0.15, hR: -0.3, kR: -0.9 };
+const CMD_KICK_B_EXTEND = { y: -0.02, tl: -0.1, tw: -0.3, ry: 1.15, sL: 0.5, eL: 1.5, sR: 0.4, eR: 1.4, hR: 1.75, kR: -0.05, hL: 0.15, kL: -0.4 };
+
+const CMD_NORMAL_TABLE = {
+  punchF: {
+    name: '전진 강타', startup: 0.14, active: 0.08, recovery: 0.28, level: 'mid',
+    dmgMul: 1.35, hitstun: 0.34, blockstun: 0.22, kb: 2.6,
+    limbs: ['fistR'], radius: 0.32, fwdSpeed: 1.4, fwdWindow: [0, 0.14],
+    windup: CMD_PUNCH_F_WINDUP, extend: CMD_PUNCH_F_EXTEND,
+  },
+  punchB: {
+    name: '견제 엘보', startup: 0.08, active: 0.06, recovery: 0.18, level: 'mid',
+    dmgMul: 0.9, hitstun: 0.26, blockstun: 0.17, kb: 1.6,
+    limbs: ['fistR'], radius: 0.3,
+    windup: CMD_PUNCH_B_WINDUP, extend: CMD_PUNCH_B_EXTEND,
+  },
+  kickF: {
+    name: '전진 니킥', startup: 0.16, active: 0.09, recovery: 0.32, level: 'mid',
+    dmgMul: 1.25, hitstun: 0.38, blockstun: 0.24, kb: 3.4,
+    limbs: ['footR'], radius: 0.34, fwdSpeed: 1.6, fwdWindow: [0, 0.16],
+    windup: CMD_KICK_F_WINDUP, extend: CMD_KICK_F_EXTEND,
+  },
+  kickB: {
+    name: '백킥', startup: 0.22, active: 0.09, recovery: 0.34, level: 'mid',
+    dmgMul: 1.3, hitstun: 0.4, blockstun: 0.24, kb: 4.4,
+    limbs: ['footR'], radius: 0.34,
+    windup: CMD_KICK_B_WINDUP, extend: CMD_KICK_B_EXTEND,
+  },
+};
+
+function commandNormal(kind, baseDamage) {
+  const { windup, extend, dmgMul, ...rest } = CMD_NORMAL_TABLE[kind];
+  return {
+    ...rest,
+    damage: Math.round(baseDamage * dmgMul),
+    sound: 'whoosh',
+    anim: strike(rest.startup, rest.active, rest.recovery, windup, extend),
+  };
+}
+
+// call once per finished character def: adds punchF/punchB/kickF/kickB from its
+// existing neutral punch/kick damage so every character gets all 4 directions.
+function attachCommandNormals(char) {
+  const m = char.moves;
+  m.punchF = commandNormal('punchF', m.punch.damage);
+  m.punchB = commandNormal('punchB', m.punch.damage);
+  m.kickF = commandNormal('kickF', m.kick.damage);
+  m.kickB = commandNormal('kickB', m.kick.damage);
+  return char;
+}
+
 // ---------- shared wakeup attacks (okizeme mixup options) ----------
 // From knockdown: hold punch = rising mid kick, hold kick = rising low sweep.
 // Both are invulnerable on startup but very punishable on block/whiff.
@@ -1142,6 +1318,7 @@ const CHUNLI = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(CHUNLI);
 
 // ============================================================
 // NINA — damage, throws, wall carry
@@ -1269,6 +1446,7 @@ const NINA = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(NINA);
 
 // ============================================================
 // CAMMY — rushdown: dives, drills, relentless forward pressure
@@ -1392,6 +1570,7 @@ const CAMMY = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(CAMMY);
 
 // ============================================================
 // ASUKA — counters and heavy strikes: the defensive specialist
@@ -1531,6 +1710,7 @@ const ASUKA = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(ASUKA);
 
 // ============================================================
 // ZANGIEF — grapple specialist: colossal command-throw damage
@@ -1650,6 +1830,7 @@ const ZANGIEF = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(ZANGIEF);
 
 // ============================================================
 // R. MIKA — grapple specialist: mobile suplex pressure
@@ -1770,6 +1951,7 @@ const RMIKA = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(RMIKA);
 
 const CHARACTERS = {
   chunli: CHUNLI, nina: NINA, cammy: CAMMY, asuka: ASUKA, zangief: ZANGIEF, rmika: RMIKA,
@@ -2485,9 +2667,24 @@ class Fighter {
     if (this.trySuper()) return;
     if (c.pressed('grab')) { c.consume('grab'); this.startMove(m.grab); return; }
     if (c.pressed('skill')) { c.consume('skill'); this.startMove(this.pickSkill()); return; }
-    const crouch = this.ctrl.held('down');
-    if (c.pressed('punch')) { c.consume('punch'); this.startMove(crouch ? m.cpunch : m.punch); return; }
-    if (c.pressed('kick')) { c.consume('kick'); this.startMove(crouch ? m.ckick : m.kick); return; }
+    if (c.pressed('punch')) { c.consume('punch'); this.startMove(this.pickPunch()); return; }
+    if (c.pressed('kick')) { c.consume('kick'); this.startMove(this.pickKick()); return; }
+  }
+
+  // directional normals (SF-style): down = crouch, forward/back = command normal, else neutral.
+  pickPunch() {
+    const m = this.char.moves;
+    if (this.ctrl.held('down')) return m.cpunch;
+    if (this.holdingFwd() && m.punchF) return m.punchF;
+    if (this.holdingBack() && m.punchB) return m.punchB;
+    return m.punch;
+  }
+  pickKick() {
+    const m = this.char.moves;
+    if (this.ctrl.held('down')) return m.ckick;
+    if (this.holdingFwd() && m.kickF) return m.kickF;
+    if (this.holdingBack() && m.kickB) return m.kickB;
+    return m.kick;
   }
 
   // super art: full gauge + (punch+kick simultaneously, or the super macro button)
@@ -3698,11 +3895,15 @@ const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerH
 camera.position.set(0, 1.9, 7.5);
 camera.lookAt(0, 1.1, 0);
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+function applySize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+  renderer.setSize(w, h);
+}
+window.addEventListener('resize', applySize);
+window.addEventListener('orientationchange', () => setTimeout(applySize, 200));
+if (window.visualViewport) window.visualViewport.addEventListener('resize', applySize);
 
 const fx = new FX(scene);
 UI.init();
@@ -3783,7 +3984,10 @@ function csConfirm() {
 }
 
 function moveListHtml(fighter, label) {
-  const moveKeys = [['skillN', '스킬'], ['skillF', '앞+스킬'], ['skillB', '뒤+스킬'], ['skillD', '↓+스킬'], ['superN', '슈퍼']];
+  const moveKeys = [
+    ['punchF', '앞+펀치'], ['punchB', '뒤+펀치'], ['kickF', '앞+킥'], ['kickB', '뒤+킥'],
+    ['skillN', '스킬'], ['skillF', '앞+스킬'], ['skillB', '뒤+스킬'], ['skillD', '↓+스킬'], ['superN', '슈퍼'],
+  ];
   const rows = moveKeys
     .map(([k, lab]) => fighter.char.moves[k] ? `${fighter.char.moves[k].name} <span style="color:#8a7fb0">— ${lab}</span>` : '')
     .filter(Boolean).join('<br>');
@@ -3801,7 +4005,7 @@ function fillPauseTable() {
 function startFight() {
   if (game) game.dispose();
   charselectEl.classList.remove('on');
-  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0));
+  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
   const p2 = new CompositeController(new KeyboardController(P2_KEYS), new PadController(1));
   const charA = CHARACTERS[CHAR_IDS[sel.p1]];
   const charB = CHARACTERS[CHAR_IDS[sel.p2]];
@@ -3824,7 +4028,7 @@ function startFight() {
 function startPractice() {
   if (game) game.dispose();
   charselectEl.classList.remove('on');
-  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0));
+  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
   const dummyCtrl = new VirtualController();
   const charA = CHARACTERS[CHAR_IDS[sel.p1]];
   const charB = CHARACTERS[CHAR_IDS[sel.p2]];
@@ -3877,6 +4081,44 @@ function runPauseAction(act) {
   } else if (act === 'exit') {
     backToTitle();
   }
+}
+
+// ---------------- touch controls ----------------
+const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+const touchCtrl = new VirtualController();
+const touchControlsEl = document.getElementById('touchControls');
+const touchPauseEl = document.getElementById('touchPause');
+
+function bindTouchButton(el) {
+  const act = el.dataset.act;
+  const onStart = (e) => {
+    e.preventDefault();
+    Sound.unlock();
+    el.classList.add('active');
+    touchCtrl.hold(act, true);
+    touchCtrl.tap(act); // also buffer as a one-shot press (jump/attack buttons need this)
+  };
+  const onEnd = (e) => {
+    e.preventDefault();
+    el.classList.remove('active');
+    touchCtrl.hold(act, false);
+  };
+  el.addEventListener('touchstart', onStart, { passive: false });
+  el.addEventListener('touchend', onEnd, { passive: false });
+  el.addEventListener('touchcancel', onEnd, { passive: false });
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+document.querySelectorAll('#touchControls .tBtn').forEach(bindTouchButton);
+touchPauseEl.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  Sound.unlock();
+  if (mode === 'fight' && !paused) openPause();
+});
+touchPauseEl.addEventListener('contextmenu', (e) => e.preventDefault());
+
+function updateTouchVisibility() {
+  touchControlsEl.classList.toggle('on', isTouchDevice && mode === 'fight' && !paused);
+  touchPauseEl.style.display = (isTouchDevice && mode === 'fight') ? 'flex' : 'none';
 }
 
 window.addEventListener('keydown', (e) => {
@@ -4016,6 +4258,7 @@ function frame(now) {
   last = now;
 
   pollGamepads();
+  updateTouchVisibility();
   const fighterDt = fx.step(dt);
 
   if (!paused) {

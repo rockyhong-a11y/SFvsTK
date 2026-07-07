@@ -2,15 +2,69 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SF vs TK — Fighting Prototype</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥋</text></svg>">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden; background: #000;
+    overscroll-behavior: none; touch-action: none;
+  }
   body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; user-select: none; }
-  #app { position: relative; width: 100%; height: 100%; }
-  canvas { display: block; }
+  #app {
+    position: relative; width: 100%; height: 100%;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  canvas { display: block; position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+
+  /* ---------- mobile / narrow-screen scaling ---------- */
+  @media (max-width: 900px), (max-height: 560px) {
+    .screen { overflow-y: auto; padding: 10px 0; touch-action: pan-y; }
+    .healthRow { top: 10px; gap: 6px; padding: 0 1.5%; }
+    .hpName { font-size: 11px; }
+    .hpBar { height: 15px; }
+    #timerBox { width: 52px; }
+    #timer { font-size: 24px; }
+    .pip { width: 9px; height: 9px; }
+    .meterBar { height: 6px; }
+    .moveName { font-size: 11px; height: 15px; }
+    .combo { font-size: 17px; top: 74px; }
+    .combo small { font-size: 10px; }
+    #announce { font-size: 42px; }
+    #announce.ko { font-size: 68px; }
+    #subAnnounce { font-size: 16px; }
+    #title h1 { font-size: 48px; }
+    #title h1 span { font-size: 34px; }
+    #title h2 { font-size: 11px; margin: 8px 0 22px; }
+    .menuOpt { font-size: 17px; padding: 6px 22px; }
+    .hintLine { margin-top: 20px; font-size: 10px; line-height: 1.6; }
+    #csGrid { gap: 8px; }
+    .csCard { width: 100px; padding: 8px 6px 6px; }
+    .csCard .csSwatch { width: 54px; height: 54px; }
+    .csCard b { font-size: 15px; }
+    .csCard span { font-size: 9px; }
+    #charselect h2 { font-size: 18px; margin-bottom: 14px; }
+    #csHint { margin-top: 16px; font-size: 10px; }
+    #pauseOverlay h2 { font-size: 24px; }
+    .pauseOpt { font-size: 15px; padding: 5px 18px; }
+    .ctrlTable { font-size: 11px; gap: 20px; }
+  }
+
+  /* portrait phones: nudge the player toward landscape without hard-blocking play */
+  #rotateHint {
+    display: none; position: absolute; inset: 0; z-index: 50;
+    background: rgba(5,0,15,.92); color: #fff; text-align: center;
+    flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    font-size: 15px; pointer-events: none;
+  }
+  #rotateHint span { font-size: 42px; }
+  @media (max-width: 700px) and (orientation: portrait) {
+    #rotateHint { display: flex; }
+  }
 
   /* ---------- HUD ---------- */
   #hud { position: absolute; inset: 0; pointer-events: none; display: none; }
@@ -213,6 +267,48 @@
   .pauseOpt.sel { color: #fff; border-color: #ffb300; background: rgba(255,140,0,.18); text-shadow: 0 0 10px #ff9500; }
   .ctrlTable { display: flex; gap: 60px; text-align: left; font-size: 14px; line-height: 2.1; color: #cfc4ee; }
   .ctrlTable b { color: #fff; display: block; margin-bottom: 4px; font-size: 16px; }
+
+  /* ---------- touch controls ---------- */
+  #touchControls {
+    display: none; position: absolute; inset: 0; z-index: 8; pointer-events: none;
+  }
+  #touchControls.on { display: block; }
+  .tBtn {
+    position: absolute; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: rgba(60,50,90,.42); border: 2px solid rgba(230,220,255,.35);
+    color: #fff; font-weight: 800; font-size: 13px; letter-spacing: .5px; font-family: inherit;
+    -webkit-user-select: none; user-select: none; pointer-events: auto; touch-action: none;
+    -webkit-touch-callout: none; outline: none;
+  }
+  .tBtn.active { background: rgba(255,150,40,.55); border-color: #ffb347; }
+  #touchDpad { position: absolute; left: 4vw; bottom: 6vh; width: 34vw; height: 34vw; max-width: 190px; max-height: 190px; }
+  #touchDpad .tBtn { width: 34%; height: 34%; font-size: 20px; }
+  #touchDpad .tUp    { left: 33%; top: 0; }
+  #touchDpad .tDown  { left: 33%; top: 66%; }
+  #touchDpad .tLeft  { left: 0;   top: 33%; }
+  #touchDpad .tRight { left: 66%; top: 33%; }
+  #touchButtons { position: absolute; right: 2vw; bottom: 3vh; width: 68vw; max-width: 380px; height: 38vw; max-height: 210px; }
+  /* row 1 (bottom edge): the 3 primary attacks, evenly spaced with clear gaps */
+  #touchButtons .tPunch, #touchButtons .tKick, #touchButtons .tSkill {
+    width: 20vw; height: 20vw; max-width: 78px; max-height: 78px; font-size: 15px; bottom: 0;
+  }
+  #touchButtons .tSkill { right: 0; }
+  #touchButtons .tKick  { right: 24vw; }
+  #touchButtons .tPunch { right: 48vw; }
+  /* row 2 (above row 1, offset over the gaps): grab + super */
+  #touchButtons .tGrab, #touchButtons .tSuper {
+    width: 14vw; height: 14vw; max-width: 54px; max-height: 54px; font-size: 9px; bottom: 22vw;
+  }
+  #touchButtons .tGrab  { right: 10vw; }
+  #touchButtons .tSuper { right: 40vw; background: rgba(55,140,255,.4); border-color: #7fd0ff; }
+  #touchPause {
+    position: absolute; top: calc(6px + env(safe-area-inset-top)); right: 8px; z-index: 9;
+    width: 34px; height: 34px; border-radius: 8px; background: rgba(40,30,60,.55); border: 2px solid rgba(230,220,255,.35);
+    color: #fff; font-size: 15px; pointer-events: auto; touch-action: none;
+  }
+  @media (min-width: 901px) and (any-hover: hover) and (any-pointer: fine) {
+    #touchControls, #touchPause { display: none !important; }
+  }
 </style>
 <script type="importmap">
   { "imports": { "three": "./vendor/three.module.min.js" } }
@@ -260,6 +356,7 @@
       <kbd>J</kbd> 펀치 &nbsp; <kbd>K</kbd> 킥 &nbsp; <kbd>L</kbd> 스킬 &nbsp; <kbd>I</kbd> 잡기 &nbsp;|&nbsp; 게임패드 지원 🎮<br>
       스킬은 <kbd>L</kbd> 단독 / <kbd>→</kbd>+<kbd>L</kbd> / <kbd>←</kbd>+<kbd>L</kbd> / <kbd>↓</kbd>+<kbd>L</kbd> 로 4가지 발동
       &nbsp;|&nbsp; 슈퍼: 게이지 MAX 시 <kbd>J</kbd>+<kbd>K</kbd> 동시 (또는 <kbd>U</kbd>)<br>
+      펀치·킥도 방향에 따라 다른 기술: <kbd>→</kbd>+<kbd>J</kbd>/<kbd>K</kbd> 전진기 · <kbd>←</kbd>+<kbd>J</kbd>/<kbd>K</kbd> 견제기 · <kbd>↓</kbd>+<kbd>J</kbd>/<kbd>K</kbd> 앉아 공격<br>
       가드: 상대 반대 방향 홀드 (앉아가드 = ↓+반대방향) &nbsp;|&nbsp; <kbd>↑↓</kbd> / <kbd>Enter</kbd> 선택
     </div>
   </div>
@@ -322,6 +419,24 @@
       <kbd>↑↓</kbd>/<kbd>Enter</kbd> 메뉴 선택 · <kbd>P</kbd> 빠른 재개 · <kbd>Esc</kbd> 뒤로
     </p>
   </div>
+
+  <div id="touchControls">
+    <div id="touchDpad">
+      <button class="tBtn tUp" data-act="up">▲</button>
+      <button class="tBtn tDown" data-act="down">▼</button>
+      <button class="tBtn tLeft" data-act="left">◀</button>
+      <button class="tBtn tRight" data-act="right">▶</button>
+    </div>
+    <div id="touchButtons">
+      <button class="tBtn tSkill" data-act="skill">스킬</button>
+      <button class="tBtn tKick" data-act="kick">킥</button>
+      <button class="tBtn tPunch" data-act="punch">펀치</button>
+      <button class="tBtn tGrab" data-act="grab">잡기</button>
+      <button class="tBtn tSuper" data-act="super">슈퍼</button>
+    </div>
+  </div>
+  <button id="touchPause">⏸</button>
+  <div id="rotateHint"><span>📱↻</span>가로모드로 돌려주세요</div>
 </div>
 <script type="module" src="./src/main.js"></script>
 </body>

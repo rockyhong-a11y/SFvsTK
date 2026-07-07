@@ -27,11 +27,15 @@ const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerH
 camera.position.set(0, 1.9, 7.5);
 camera.lookAt(0, 1.1, 0);
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+function applySize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+  renderer.setSize(w, h);
+}
+window.addEventListener('resize', applySize);
+window.addEventListener('orientationchange', () => setTimeout(applySize, 200));
+if (window.visualViewport) window.visualViewport.addEventListener('resize', applySize);
 
 const fx = new FX(scene);
 UI.init();
@@ -112,7 +116,10 @@ function csConfirm() {
 }
 
 function moveListHtml(fighter, label) {
-  const moveKeys = [['skillN', '스킬'], ['skillF', '앞+스킬'], ['skillB', '뒤+스킬'], ['skillD', '↓+스킬'], ['superN', '슈퍼']];
+  const moveKeys = [
+    ['punchF', '앞+펀치'], ['punchB', '뒤+펀치'], ['kickF', '앞+킥'], ['kickB', '뒤+킥'],
+    ['skillN', '스킬'], ['skillF', '앞+스킬'], ['skillB', '뒤+스킬'], ['skillD', '↓+스킬'], ['superN', '슈퍼'],
+  ];
   const rows = moveKeys
     .map(([k, lab]) => fighter.char.moves[k] ? `${fighter.char.moves[k].name} <span style="color:#8a7fb0">— ${lab}</span>` : '')
     .filter(Boolean).join('<br>');
@@ -130,7 +137,7 @@ function fillPauseTable() {
 function startFight() {
   if (game) game.dispose();
   charselectEl.classList.remove('on');
-  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0));
+  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
   const p2 = new CompositeController(new KeyboardController(P2_KEYS), new PadController(1));
   const charA = CHARACTERS[CHAR_IDS[sel.p1]];
   const charB = CHARACTERS[CHAR_IDS[sel.p2]];
@@ -153,7 +160,7 @@ function startFight() {
 function startPractice() {
   if (game) game.dispose();
   charselectEl.classList.remove('on');
-  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0));
+  const p1 = new CompositeController(new KeyboardController(P1_KEYS), new PadController(0), touchCtrl);
   const dummyCtrl = new VirtualController();
   const charA = CHARACTERS[CHAR_IDS[sel.p1]];
   const charB = CHARACTERS[CHAR_IDS[sel.p2]];
@@ -206,6 +213,44 @@ function runPauseAction(act) {
   } else if (act === 'exit') {
     backToTitle();
   }
+}
+
+// ---------------- touch controls ----------------
+const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+const touchCtrl = new VirtualController();
+const touchControlsEl = document.getElementById('touchControls');
+const touchPauseEl = document.getElementById('touchPause');
+
+function bindTouchButton(el) {
+  const act = el.dataset.act;
+  const onStart = (e) => {
+    e.preventDefault();
+    Sound.unlock();
+    el.classList.add('active');
+    touchCtrl.hold(act, true);
+    touchCtrl.tap(act); // also buffer as a one-shot press (jump/attack buttons need this)
+  };
+  const onEnd = (e) => {
+    e.preventDefault();
+    el.classList.remove('active');
+    touchCtrl.hold(act, false);
+  };
+  el.addEventListener('touchstart', onStart, { passive: false });
+  el.addEventListener('touchend', onEnd, { passive: false });
+  el.addEventListener('touchcancel', onEnd, { passive: false });
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+document.querySelectorAll('#touchControls .tBtn').forEach(bindTouchButton);
+touchPauseEl.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  Sound.unlock();
+  if (mode === 'fight' && !paused) openPause();
+});
+touchPauseEl.addEventListener('contextmenu', (e) => e.preventDefault());
+
+function updateTouchVisibility() {
+  touchControlsEl.classList.toggle('on', isTouchDevice && mode === 'fight' && !paused);
+  touchPauseEl.style.display = (isTouchDevice && mode === 'fight') ? 'flex' : 'none';
 }
 
 window.addEventListener('keydown', (e) => {
@@ -345,6 +390,7 @@ function frame(now) {
   last = now;
 
   pollGamepads();
+  updateTouchVisibility();
   const fighterDt = fx.step(dt);
 
   if (!paused) {

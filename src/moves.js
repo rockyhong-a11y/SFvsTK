@@ -121,6 +121,67 @@ function strike(su, act, rec, windup, extend, recover = ST) {
 
 const RAD = 0.3; // default hit sphere radius
 
+// ---------- directional command normals (SF-style forward/back punch & kick) ----------
+// Neutral/crouch/air punch & kick already exist (punch/cpunch/jpunch, kick/ckick/jkick).
+// These add the classic SF-style forward/back command normals: holding toward or away
+// from the opponent while pressing punch/kick gives a different, situational normal.
+const CMD_PUNCH_F_WINDUP = { ...ST, tw: -0.55, sR: 0.1, eR: 1.95 };
+const CMD_PUNCH_F_EXTEND = { y: -0.03, tl: 0.08, tw: 0.6, sR: 1.7, eR: 0.05, sL: 0.3, eL: 1.7, hL: 0.55, kL: -0.5, hR: 0.05, kR: -0.35 };
+const CMD_PUNCH_B_WINDUP = { ...ST, tl: -0.15, tw: -0.4, sR: 0.7, eR: 1.3, sxR: 0.3 };
+const CMD_PUNCH_B_EXTEND = { y: -0.02, tl: -0.25, tw: 0.15, sR: 1.55, eR: 0.55, sxR: 0.3, sL: 0.35, eL: 1.75, hL: 0.3, kL: -0.5 };
+const CMD_KICK_F_WINDUP = { ...ST, tl: 0.15, tw: -0.55, hR: -0.55, kR: -1.35 };
+const CMD_KICK_F_EXTEND = { y: -0.03, tl: -0.15, tw: 0.55, sL: 0.6, eL: 1.5, sR: -0.55, eR: 0.55, sxR: 0.4, hL: 0.2, kL: -0.4, hR: 1.7, kR: -0.1 };
+const CMD_KICK_B_WINDUP = { ...ST, tl: 0.1, tw: 0.3, ry: 0.15, hR: -0.3, kR: -0.9 };
+const CMD_KICK_B_EXTEND = { y: -0.02, tl: -0.1, tw: -0.3, ry: 1.15, sL: 0.5, eL: 1.5, sR: 0.4, eR: 1.4, hR: 1.75, kR: -0.05, hL: 0.15, kL: -0.4 };
+
+const CMD_NORMAL_TABLE = {
+  punchF: {
+    name: '전진 강타', startup: 0.14, active: 0.08, recovery: 0.28, level: 'mid',
+    dmgMul: 1.35, hitstun: 0.34, blockstun: 0.22, kb: 2.6,
+    limbs: ['fistR'], radius: 0.32, fwdSpeed: 1.4, fwdWindow: [0, 0.14],
+    windup: CMD_PUNCH_F_WINDUP, extend: CMD_PUNCH_F_EXTEND,
+  },
+  punchB: {
+    name: '견제 엘보', startup: 0.08, active: 0.06, recovery: 0.18, level: 'mid',
+    dmgMul: 0.9, hitstun: 0.26, blockstun: 0.17, kb: 1.6,
+    limbs: ['fistR'], radius: 0.3,
+    windup: CMD_PUNCH_B_WINDUP, extend: CMD_PUNCH_B_EXTEND,
+  },
+  kickF: {
+    name: '전진 니킥', startup: 0.16, active: 0.09, recovery: 0.32, level: 'mid',
+    dmgMul: 1.25, hitstun: 0.38, blockstun: 0.24, kb: 3.4,
+    limbs: ['footR'], radius: 0.34, fwdSpeed: 1.6, fwdWindow: [0, 0.16],
+    windup: CMD_KICK_F_WINDUP, extend: CMD_KICK_F_EXTEND,
+  },
+  kickB: {
+    name: '백킥', startup: 0.22, active: 0.09, recovery: 0.34, level: 'mid',
+    dmgMul: 1.3, hitstun: 0.4, blockstun: 0.24, kb: 4.4,
+    limbs: ['footR'], radius: 0.34,
+    windup: CMD_KICK_B_WINDUP, extend: CMD_KICK_B_EXTEND,
+  },
+};
+
+function commandNormal(kind, baseDamage) {
+  const { windup, extend, dmgMul, ...rest } = CMD_NORMAL_TABLE[kind];
+  return {
+    ...rest,
+    damage: Math.round(baseDamage * dmgMul),
+    sound: 'whoosh',
+    anim: strike(rest.startup, rest.active, rest.recovery, windup, extend),
+  };
+}
+
+// call once per finished character def: adds punchF/punchB/kickF/kickB from its
+// existing neutral punch/kick damage so every character gets all 4 directions.
+function attachCommandNormals(char) {
+  const m = char.moves;
+  m.punchF = commandNormal('punchF', m.punch.damage);
+  m.punchB = commandNormal('punchB', m.punch.damage);
+  m.kickF = commandNormal('kickF', m.kick.damage);
+  m.kickB = commandNormal('kickB', m.kick.damage);
+  return char;
+}
+
 // ---------- shared wakeup attacks (okizeme mixup options) ----------
 // From knockdown: hold punch = rising mid kick, hold kick = rising low sweep.
 // Both are invulnerable on startup but very punishable on block/whiff.
@@ -298,6 +359,7 @@ const CHUNLI = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(CHUNLI);
 
 // ============================================================
 // NINA — damage, throws, wall carry
@@ -425,6 +487,7 @@ const NINA = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(NINA);
 
 // ============================================================
 // CAMMY — rushdown: dives, drills, relentless forward pressure
@@ -548,6 +611,7 @@ const CAMMY = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(CAMMY);
 
 // ============================================================
 // ASUKA — counters and heavy strikes: the defensive specialist
@@ -687,6 +751,7 @@ const ASUKA = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(ASUKA);
 
 // ============================================================
 // ZANGIEF — grapple specialist: colossal command-throw damage
@@ -806,6 +871,7 @@ const ZANGIEF = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(ZANGIEF);
 
 // ============================================================
 // R. MIKA — grapple specialist: mobile suplex pressure
@@ -926,6 +992,7 @@ const RMIKA = {
     ...wakeupMoves(),
   },
 };
+attachCommandNormals(RMIKA);
 
 export const CHARACTERS = {
   chunli: CHUNLI, nina: NINA, cammy: CAMMY, asuka: ASUKA, zangief: ZANGIEF, rmika: RMIKA,

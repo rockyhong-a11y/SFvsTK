@@ -135,9 +135,24 @@ export class Fighter {
     if (this.trySuper()) return;
     if (c.pressed('grab')) { c.consume('grab'); this.startMove(m.grab); return; }
     if (c.pressed('skill')) { c.consume('skill'); this.startMove(this.pickSkill()); return; }
-    const crouch = this.ctrl.held('down');
-    if (c.pressed('punch')) { c.consume('punch'); this.startMove(crouch ? m.cpunch : m.punch); return; }
-    if (c.pressed('kick')) { c.consume('kick'); this.startMove(crouch ? m.ckick : m.kick); return; }
+    if (c.pressed('punch')) { c.consume('punch'); this.startMove(this.pickPunch()); return; }
+    if (c.pressed('kick')) { c.consume('kick'); this.startMove(this.pickKick()); return; }
+  }
+
+  // directional normals (SF-style): down = crouch, forward/back = command normal, else neutral.
+  pickPunch() {
+    const m = this.char.moves;
+    if (this.ctrl.held('down')) return m.cpunch;
+    if (this.holdingFwd() && m.punchF) return m.punchF;
+    if (this.holdingBack() && m.punchB) return m.punchB;
+    return m.punch;
+  }
+  pickKick() {
+    const m = this.char.moves;
+    if (this.ctrl.held('down')) return m.ckick;
+    if (this.holdingFwd() && m.kickF) return m.kickF;
+    if (this.holdingBack() && m.kickB) return m.kickB;
+    return m.kick;
   }
 
   // super art: full gauge + (punch+kick simultaneously, or the super macro button)
